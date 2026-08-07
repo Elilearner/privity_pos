@@ -40,16 +40,12 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 6),
-
             Text(
               'Mesa ${account.tableNumber}',
               style: const TextStyle(color: AppColors.textSecondary),
             ),
-
             const SizedBox(height: 20),
-
             Expanded(
               child: account.items.isEmpty
                   ? const Center(
@@ -61,7 +57,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     )
                   : ListView.separated(
                       itemCount: account.items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final item = account.items[index];
 
@@ -90,7 +86,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                               item,
                             );
 
-                            if (!shouldDelete || !mounted) {
+                            if (!mounted || !shouldDelete) {
                               return;
                             }
 
@@ -106,7 +102,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                               item,
                             );
 
-                            if (!shouldDelete || !mounted) {
+                            if (!mounted || !shouldDelete) {
                               return;
                             }
 
@@ -121,9 +117,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       },
                     ),
             ),
-
             const SizedBox(height: 12),
-
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -136,7 +130,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     ),
                   );
 
-                  if (!mounted) {
+                  if (!context.mounted) {
                     return;
                   }
 
@@ -146,16 +140,12 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 label: const Text('AGREGAR PRODUCTOS'),
               ),
             ),
-
             const SizedBox(height: 12),
-
             InvoiceSummaryCard(
               totalItems: account.totalItems,
               subtotal: account.subtotal,
             ),
-
             const SizedBox(height: 12),
-
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -170,7 +160,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           ),
                         );
 
-                        if (!mounted) {
+                        if (!context.mounted) {
                           return;
                         }
 
@@ -198,9 +188,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         return AlertDialog(
           title: const Text('Eliminar producto'),
           content: Text(
-            '¿Deseas eliminar '
-            '${item.product.name} '
-            'de esta cuenta?',
+            '¿Deseas eliminar ${item.product.name} de esta cuenta?',
           ),
           actions: [
             TextButton(

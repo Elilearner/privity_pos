@@ -51,9 +51,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   ? const _EmptyAccountsMessage()
                   : ListView.separated(
                       itemCount: accounts.length,
-                      separatorBuilder: (_, __) {
-                        return const SizedBox(height: 10);
-                      },
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final account = accounts[index];
 
@@ -70,7 +68,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               ),
                             );
 
-                            if (!mounted) {
+                            if (!context.mounted) {
                               return;
                             }
 
@@ -145,7 +143,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
       },
     );
 
-    if (customerName == null || !mounted) {
+    if (!mounted || customerName == null) {
       return;
     }
 

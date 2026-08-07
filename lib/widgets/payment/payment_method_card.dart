@@ -38,7 +38,7 @@ class PaymentMethodCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundColor: AppColors.goldLight.withOpacity(0.15),
+                backgroundColor: AppColors.goldLight.withValues(alpha: 0.15),
                 child: Icon(icon, color: AppColors.goldLight, size: 28),
               ),
 
