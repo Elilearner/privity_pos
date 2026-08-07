@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
-import '../../core/currency_formatter.dart';
 import '../../models/invoice_item.dart';
 import '../../models/table_account.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/invoice/invoice_item_card.dart';
+import '../../widgets/invoice/invoice_summary_card.dart';
 import '../product_picker/product_picker_screen.dart';
 
 class InvoiceScreen extends StatefulWidget {
@@ -65,8 +65,6 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
                         return InvoiceItemCard(
                           item: item,
-
-                          // Aumentar cantidad
                           onIncrease: () {
                             Services.sales.increaseProductQuantity(
                               account: account,
@@ -75,8 +73,6 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
                             setState(() {});
                           },
-
-                          // Disminuir cantidad
                           onDecrease: () async {
                             if (item.quantity > 1) {
                               Services.sales.decreaseProductQuantity(
@@ -103,8 +99,6 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
                             setState(() {});
                           },
-
-                          // Eliminar producto directamente
                           onDelete: () async {
                             final shouldDelete = await _confirmDeleteProduct(
                               item,
@@ -152,29 +146,10 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             ),
 
             const SizedBox(height: 12),
-            const Divider(),
 
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'TOTAL',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Text(
-                  CurrencyFormatter.format(account.subtotal),
-                  style: const TextStyle(
-                    color: AppColors.goldLight,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            InvoiceSummaryCard(
+              totalItems: account.totalItems,
+              subtotal: account.subtotal,
             ),
           ],
         ),
@@ -189,9 +164,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         return AlertDialog(
           title: const Text('Eliminar producto'),
           content: Text(
-            '¿Deseas eliminar '
-            '${item.product.name} '
-            'de esta cuenta?',
+            '¿Deseas eliminar ${item.product.name} de esta cuenta?',
           ),
           actions: [
             TextButton(

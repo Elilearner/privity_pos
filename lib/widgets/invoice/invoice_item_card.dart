@@ -44,11 +44,12 @@ class InvoiceItemCard extends StatelessWidget {
               ),
               IconButton(
                 onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Eliminar producto',
+                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             '${CurrencyFormatter.format(item.unitPrice)} c/u',
             style: const TextStyle(
@@ -61,10 +62,15 @@ class InvoiceItemCard extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: onDecrease,
-                icon: const Icon(Icons.remove_circle_outline),
+                tooltip: 'Disminuir cantidad',
+                icon: const Icon(
+                  Icons.remove_circle_outline,
+                  color: AppColors.goldLight,
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
-                constraints: const BoxConstraints(minWidth: 40),
+                constraints: const BoxConstraints(minWidth: 36),
                 alignment: Alignment.center,
                 child: Text(
                   '${item.quantity}',
@@ -75,16 +81,21 @@ class InvoiceItemCard extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: onIncrease,
-                icon: const Icon(Icons.add_circle_outline),
+                tooltip: 'Aumentar cantidad',
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: AppColors.goldLight,
+                ),
               ),
               const Spacer(),
               Text(
                 CurrencyFormatter.format(item.total),
                 style: const TextStyle(
                   color: AppColors.goldLight,
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
