@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
-import '../../core/currency_formatter.dart';
-import '../../models/payment_method.dart';
 import '../../models/sale.dart';
 import '../../services/service_locator.dart';
+import '../../widgets/history/sale_history_card.dart';
+import '../../widgets/history/today_sales_summary.dart';
+import 'sale_detail_screen.dart';
+
+enum _HistoryFilter { today, all }
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -14,13 +17,153 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  _HistoryFilter selectedFilter = _HistoryFilter.today;
+
+  final TextEditingController _searchController = TextEditingController();
+
+  String searchText = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final sales = Services.sales.sales.reversed.toList();
+    final allSales = Services.sales.sales.reversed.toList();
+
+    final filteredSales = _applyFilters(allSales);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Historial de ventas')),
-      body: sales.isEmpty ? _buildEmptyHistory() : _buildSalesList(sales),
+      body: allSales.isEmpty
+          ? _buildEmptyHistory()
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
+                  child: Column(
+                    children: [
+                      TodaySalesSummary(sales: allSales),
+                      const SizedBox(height: 12),
+                      _buildFilterSelector(),
+                      const SizedBox(height: 12),
+                      _buildSearchField(),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: filteredSales.isEmpty
+                      ? _buildNoResults()
+                      : _buildSalesList(filteredSales),
+                ),
+              ],
+            ),
+    );
+  }
+
+  List<Sale> _applyFilters(List<Sale> sales) {
+    var result = sales;
+
+    if (selectedFilter == _HistoryFilter.today) {
+      final now = DateTime.now();
+
+      result = result.where((sale) {
+        final date = sale.createdAt;
+
+        return date.year == now.year &&
+            date.month == now.month &&
+            date.day == now.day;
+      }).toList();
+    }
+
+    final query = searchText.trim().toLowerCase();
+
+    if (query.isEmpty) {
+      return result;
+    }
+
+    return result.where((sale) {
+      final saleNumber = sale.id.toString().toLowerCase();
+
+      final customer = sale.customerName?.toLowerCase() ?? '';
+
+      final tableNumber = sale.tableNumber?.toString() ?? '';
+
+      final tableText = sale.tableNumber != null
+          ? 'mesa ${sale.tableNumber}'.toLowerCase()
+          : '';
+
+      return saleNumber.contains(query) ||
+          customer.contains(query) ||
+          tableNumber.contains(query) ||
+          tableText.contains(query);
+    }).toList();
+  }
+
+  Widget _buildFilterSelector() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _HistoryFilterButton(
+              title: 'HOY',
+              selected: selectedFilter == _HistoryFilter.today,
+              onTap: () {
+                setState(() {
+                  selectedFilter = _HistoryFilter.today;
+                });
+              },
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _HistoryFilterButton(
+              title: 'TODAS',
+              selected: selectedFilter == _HistoryFilter.all,
+              onTap: () {
+                setState(() {
+                  selectedFilter = _HistoryFilter.all;
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: 'Buscar venta, cliente o mesa...',
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: searchText.isEmpty
+            ? null
+            : IconButton(
+                onPressed: () {
+                  _searchController.clear();
+
+                  setState(() {
+                    searchText = '';
+                  });
+                },
+                icon: const Icon(Icons.close),
+              ),
+      ),
+      onChanged: (value) {
+        setState(() {
+          searchText = value;
+        });
+      },
     );
   }
 
@@ -58,240 +201,86 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  Widget _buildNoResults() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 52, color: AppColors.textSecondary),
+            SizedBox(height: 12),
+            Text(
+              'No se encontraron ventas.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSalesList(List<Sale> sales) {
     return ListView.separated(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
       itemCount: sales.length,
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final sale = sales[index];
 
-        return _SaleHistoryCard(sale: sale);
+        return SaleHistoryCard(
+          sale: sale,
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => SaleDetailScreen(sale: sale)),
+            );
+
+            if (!context.mounted) {
+              return;
+            }
+
+            setState(() {});
+          },
+        );
       },
     );
   }
 }
 
-class _SaleHistoryCard extends StatelessWidget {
-  const _SaleHistoryCard({required this.sale});
+class _HistoryFilterButton extends StatelessWidget {
+  const _HistoryFilterButton({
+    required this.title,
+    required this.selected,
+    required this.onTap,
+  });
 
-  final Sale sale;
+  final String title;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Venta #${sale.id}',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Text(
-                CurrencyFormatter.format(sale.total),
-                style: const TextStyle(
-                  color: AppColors.goldLight,
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          Row(
-            children: [
-              const Icon(
-                Icons.table_restaurant_outlined,
-                size: 18,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _saleLocation,
-                  style: const TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-            ],
-          ),
-
-          if (sale.customerName != null &&
-              sale.customerName!.trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(
-                  Icons.person_outline,
-                  size: 18,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    sale.customerName!,
-                    style: const TextStyle(color: AppColors.textSecondary),
-                  ),
-                ),
-              ],
+    return Material(
+      color: selected
+          ? AppColors.goldLight.withValues(alpha: 0.14)
+          : Colors.transparent,
+      borderRadius: BorderRadius.circular(9),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(9),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: selected ? AppColors.goldLight : AppColors.textSecondary,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
             ),
-          ],
-
-          const SizedBox(height: 8),
-
-          Row(
-            children: [
-              const Icon(
-                Icons.schedule,
-                size: 18,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _formatDateTime(sale.createdAt),
-                  style: const TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-            ],
           ),
-
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 8),
-
-          Row(
-            children: [
-              Icon(_paymentIcon, size: 20, color: AppColors.goldLight),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _paymentName,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              _StatusBadge(isClosed: sale.isClosed),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String get _saleLocation {
-    if (sale.tableNumber != null) {
-      return 'Mesa ${sale.tableNumber}';
-    }
-
-    switch (sale.type.name) {
-      case 'quickSale':
-        return 'Venta rápida';
-      case 'takeaway':
-        return 'Para llevar';
-      case 'delivery':
-        return 'Delivery';
-      default:
-        return 'Venta';
-    }
-  }
-
-  PaymentMethod? get _paymentMethod {
-    if (sale.payments.isEmpty) {
-      return null;
-    }
-
-    return sale.payments.first.method;
-  }
-
-  String get _paymentName {
-    switch (_paymentMethod) {
-      case PaymentMethod.cash:
-        return 'EFECTIVO';
-      case PaymentMethod.card:
-        return 'TARJETA';
-      case PaymentMethod.transfer:
-        return 'TRANSFERENCIA';
-      case null:
-        return 'SIN PAGO';
-    }
-  }
-
-  IconData get _paymentIcon {
-    switch (_paymentMethod) {
-      case PaymentMethod.cash:
-        return Icons.payments_outlined;
-      case PaymentMethod.card:
-        return Icons.credit_card;
-      case PaymentMethod.transfer:
-        return Icons.account_balance_outlined;
-      case null:
-        return Icons.help_outline;
-    }
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    final day = dateTime.day.toString().padLeft(2, '0');
-    final month = dateTime.month.toString().padLeft(2, '0');
-    final year = dateTime.year;
-
-    var hour = dateTime.hour;
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-
-    final period = hour >= 12 ? 'PM' : 'AM';
-
-    if (hour == 0) {
-      hour = 12;
-    } else if (hour > 12) {
-      hour -= 12;
-    }
-
-    return '$day/$month/$year · '
-        '$hour:$minute $period';
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.isClosed});
-
-  final bool isClosed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: isClosed
-            ? AppColors.goldLight.withValues(alpha: 0.12)
-            : AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isClosed ? AppColors.goldLight : AppColors.border,
-        ),
-      ),
-      child: Text(
-        isClosed ? 'PAGADA' : 'ABIERTA',
-        style: TextStyle(
-          color: isClosed ? AppColors.goldLight : AppColors.textSecondary,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
