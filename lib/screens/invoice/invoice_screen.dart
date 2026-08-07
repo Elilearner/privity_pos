@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
 import '../../core/currency_formatter.dart';
+import '../../models/invoice_item.dart';
 import '../../models/table_account.dart';
+import '../../services/service_locator.dart';
+import '../../widgets/invoice/invoice_item_card.dart';
 import '../product_picker/product_picker_screen.dart';
 
 class InvoiceScreen extends StatefulWidget {
@@ -56,35 +59,68 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     )
                   : ListView.separated(
                       itemCount: account.items.length,
-                      separatorBuilder: (_, __) {
-                        return const Divider();
-                      },
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final item = account.items[index];
 
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            item.product.name,
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          subtitle: Text(
-                            '${item.quantity} x '
-                            '${CurrencyFormatter.format(item.unitPrice)}',
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          trailing: Text(
-                            CurrencyFormatter.format(item.total),
-                            style: const TextStyle(
-                              color: AppColors.goldLight,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        return InvoiceItemCard(
+                          item: item,
+
+                          // Aumentar cantidad
+                          onIncrease: () {
+                            Services.sales.increaseProductQuantity(
+                              account: account,
+                              productId: item.product.id,
+                            );
+
+                            setState(() {});
+                          },
+
+                          // Disminuir cantidad
+                          onDecrease: () async {
+                            if (item.quantity > 1) {
+                              Services.sales.decreaseProductQuantity(
+                                account: account,
+                                productId: item.product.id,
+                              );
+
+                              setState(() {});
+                              return;
+                            }
+
+                            final shouldDelete = await _confirmDeleteProduct(
+                              item,
+                            );
+
+                            if (!shouldDelete || !mounted) {
+                              return;
+                            }
+
+                            Services.sales.removeProduct(
+                              account: account,
+                              productId: item.product.id,
+                            );
+
+                            setState(() {});
+                          },
+
+                          // Eliminar producto directamente
+                          onDelete: () async {
+                            final shouldDelete = await _confirmDeleteProduct(
+                              item,
+                            );
+
+                            if (!shouldDelete || !mounted) {
+                              return;
+                            }
+
+                            Services.sales.removeProduct(
+                              account: account,
+                              productId: item.product.id,
+                            );
+
+                            setState(() {});
+                          },
                         );
                       },
                     ),
@@ -144,5 +180,37 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         ),
       ),
     );
+  }
+
+  Future<bool> _confirmDeleteProduct(InvoiceItem item) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Eliminar producto'),
+          content: Text(
+            '¿Deseas eliminar '
+            '${item.product.name} '
+            'de esta cuenta?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text('CANCELAR'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text('ELIMINAR'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? false;
   }
 }

@@ -45,12 +45,11 @@ class SaleService {
       return false;
     }
 
-    if (item.quantity > 1) {
-      item.decrease();
-    } else {
-      removeProduct(account: account, productId: productId);
+    if (item.quantity <= 1) {
+      return false;
     }
 
+    item.decrease();
     return true;
   }
 
@@ -77,6 +76,13 @@ class SaleService {
 
   int getTotalItems(TableAccount account) {
     return account.totalItems;
+  }
+
+  InvoiceItem? getItem({
+    required TableAccount account,
+    required int productId,
+  }) {
+    return _findItem(account: account, productId: productId);
   }
 
   InvoiceItem? _findItem({
