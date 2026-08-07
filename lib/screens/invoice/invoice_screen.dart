@@ -6,6 +6,7 @@ import '../../models/table_account.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/invoice/invoice_item_card.dart';
 import '../../widgets/invoice/invoice_summary_card.dart';
+import '../payment/payment_screen.dart';
 import '../product_picker/product_picker_screen.dart';
 
 class InvoiceScreen extends StatefulWidget {
@@ -39,6 +40,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 6),
 
             Text(
@@ -151,6 +153,38 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               totalItems: account.totalItems,
               subtotal: account.subtotal,
             ),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton.icon(
+                onPressed: account.items.isEmpty
+                    ? null
+                    : () async {
+                        final paymentCompleted = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PaymentScreen(account: account),
+                          ),
+                        );
+
+                        if (!mounted) {
+                          return;
+                        }
+
+                        if (paymentCompleted == true) {
+                          Navigator.pop(context, true);
+                          return;
+                        }
+
+                        setState(() {});
+                      },
+                icon: const Icon(Icons.payments_outlined),
+                label: const Text('COBRAR'),
+              ),
+            ),
           ],
         ),
       ),
@@ -164,7 +198,9 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         return AlertDialog(
           title: const Text('Eliminar producto'),
           content: Text(
-            '¿Deseas eliminar ${item.product.name} de esta cuenta?',
+            '¿Deseas eliminar '
+            '${item.product.name} '
+            'de esta cuenta?',
           ),
           actions: [
             TextButton(

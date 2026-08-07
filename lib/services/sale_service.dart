@@ -1,11 +1,24 @@
 import '../models/invoice_item.dart';
+import '../models/payment.dart';
+import '../models/payment_method.dart';
 import '../models/product.dart';
+import '../models/sale.dart';
+import '../models/sale_type.dart';
 import '../models/table_account.dart';
+import 'table_service.dart';
 
 class SaleService {
   SaleService._();
 
   static final SaleService instance = SaleService._();
+
+  final List<Sale> _sales = [];
+
+  int _nextSaleId = 1;
+
+  List<Sale> get sales {
+    return List.unmodifiable(_sales);
+  }
 
   void addProductToAccount({
     required TableAccount account,
@@ -83,6 +96,71 @@ class SaleService {
     required int productId,
   }) {
     return _findItem(account: account, productId: productId);
+  }
+
+  Sale? closeTableSaleWithCash({
+    required TableAccount account,
+    required double receivedAmount,
+  }) {
+    if (account.items.isEmpty) {
+      return null;
+    }
+
+    final total = account.subtotal;
+
+    if (receivedAmount < total) {
+      return null;
+    }
+
+    final payment = Payment(
+      method: PaymentMethod.cash,
+      amount: total,
+      receivedAmount: receivedAmount,
+    );
+
+    final sale = Sale(
+      id: _nextSaleId,
+      type: SaleType.table,
+      createdAt: DateTime.now(),
+      items: List<InvoiceItem>.from(account.items),
+      tableNumber: account.tableNumber,
+      accountId: account.id,
+      customerName: account.customerName,
+      payments: [payment],
+      isClosed: true,
+    );
+
+    final accountClosed = TableService.instance.closeAccount(
+      tableNumber: account.tableNumber,
+      accountId: account.id,
+    );
+
+    if (!accountClosed) {
+      return null;
+    }
+
+    _nextSaleId++;
+    _sales.add(sale);
+
+    return sale;
+  }
+
+  Sale? getSale(int saleId) {
+    for (final sale in _sales) {
+      if (sale.id == saleId) {
+        return sale;
+      }
+    }
+
+    return null;
+  }
+
+  double get totalSalesAmount {
+    return _sales.fold(0, (sum, sale) => sum + sale.total);
+  }
+
+  int get totalSales {
+    return _sales.length;
   }
 
   InvoiceItem? _findItem({

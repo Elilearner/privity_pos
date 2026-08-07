@@ -27,3 +27,46 @@ Version 0.9
 
 Version 1.0
 ⬜ Commercial Release
+✔ v0.6.0 Core Architecture
+
+✔ v0.7.0 Factura Profesional
+
+🟡 v0.7.0 Cobro
+   □ Efectivo
+   □ Tarjeta
+   □ Transferencia
+   □ Pago mixto
+
+⬜ v0.8.0 Historial Profesional
+
+⬜ v0.9.0 Configuración del Negocio
+
+⬜ v1.0.0 Primera versión comercial
+
+✔ v0.6.0 Core Architecture
+
+✔ Factura Profesional
+
+✔ Controles de Cantidad
+
+✔ Resumen Profesional
+
+✔ Pantalla de Cobro
+
+✔ Métodos configurables
+
+🔄 Cash Payment (siguiente)
+
+⬜ Tarjeta
+
+⬜ Transferencia
+
+⬜ Pago Mixto
+
+⬜ Cerrar Venta
+
+⬜ Historial
+
+⬜ Configuración Avanzada
+
+⬜ v1.0.0
