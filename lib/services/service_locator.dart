@@ -22,8 +22,10 @@ class Services {
     return CashService.instance;
   }
 
-  static void initialize() {
+  static Future<void> initialize() async {
     tables.initialize();
-    products.initialize();
+
+    await products.initialize();
+    await sales.initialize();
   }
 }

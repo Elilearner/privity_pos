@@ -1,3 +1,5 @@
+import '../data/database/app_database.dart' as db;
+import '../data/repositories/sale_repository.dart';
 import '../models/invoice_item.dart';
 import '../models/payment.dart';
 import '../models/payment_method.dart';
@@ -14,10 +16,40 @@ class SaleService {
 
   final List<Sale> _sales = [];
 
+  late final db.AppDatabase _database;
+  late final SaleRepository _repository;
+
+  bool _initialized = false;
+
   int _nextSaleId = 1;
 
   List<Sale> get sales {
     return List.unmodifiable(_sales);
+  }
+
+  Future<void> initialize() async {
+    if (_initialized) {
+      return;
+    }
+
+    _database = db.AppDatabase();
+    _repository = SaleRepository(_database);
+
+    final storedSales = await _repository.getAllSales();
+
+    _sales
+      ..clear()
+      ..addAll(storedSales);
+
+    if (_sales.isNotEmpty) {
+      final highestId = _sales.fold<int>(0, (currentMax, sale) {
+        return sale.id > currentMax ? sale.id : currentMax;
+      });
+
+      _nextSaleId = highestId + 1;
+    }
+
+    _initialized = true;
   }
 
   void addProductToAccount({
@@ -76,6 +108,7 @@ class SaleService {
     }
 
     account.removeItem(index);
+
     return true;
   }
 
@@ -98,10 +131,10 @@ class SaleService {
     return _findItem(account: account, productId: productId);
   }
 
-  Sale? closeTableSaleWithCash({
+  Future<Sale?> closeTableSaleWithCash({
     required TableAccount account,
     required double receivedAmount,
-  }) {
+  }) async {
     if (account.items.isEmpty) {
       return null;
     }
@@ -130,16 +163,25 @@ class SaleService {
       isClosed: true,
     );
 
+    try {
+      await _repository.saveSale(sale);
+    } catch (_) {
+      return null;
+    }
+
     final accountClosed = TableService.instance.closeAccount(
       tableNumber: account.tableNumber,
       accountId: account.id,
     );
 
     if (!accountClosed) {
+      await _repository.deleteSale(sale.id);
+
       return null;
     }
 
     _nextSaleId++;
+
     _sales.add(sale);
 
     return sale;
@@ -156,7 +198,7 @@ class SaleService {
   }
 
   double get totalSalesAmount {
-    return _sales.fold(0, (sum, sale) => sum + sale.total);
+    return _sales.fold<double>(0, (sum, sale) => sum + sale.total);
   }
 
   int get totalSales {

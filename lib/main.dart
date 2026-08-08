@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'app/app.dart';
 import 'services/service_locator.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  Services.initialize();
+  await Services.initialize();
 
   runApp(const PrivityDrinkApp());
 }

@@ -196,11 +196,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-  void _confirmCashPayment(double receivedAmount) {
-    final sale = Services.sales.closeTableSaleWithCash(
+  Future<void> _confirmCashPayment(double receivedAmount) async {
+    final sale = await Services.sales.closeTableSaleWithCash(
       account: account,
       receivedAmount: receivedAmount,
     );
+
+    if (!mounted) {
+      return;
+    }
 
     if (sale == null) {
       ScaffoldMessenger.of(context).showSnackBar(

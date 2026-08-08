@@ -1,0 +1,80 @@
+import 'package:drift/drift.dart' as drift;
+
+import '../../models/product.dart' as domain;
+import '../database/app_database.dart' as db;
+
+class ProductRepository {
+  ProductRepository(this.database);
+
+  final db.AppDatabase database;
+
+  Future<List<domain.Product>> getAllProducts() async {
+    final rows = await database.select(database.products).get();
+
+    return rows.map((row) {
+      return domain.Product(
+        id: row.id,
+        name: row.name,
+        salePrice: row.salePrice,
+        purchasePrice: row.purchasePrice,
+        imagePath: row.imagePath,
+        category: row.category,
+        stock: row.stock,
+        isActive: row.isActive,
+        description: row.description,
+        barcode: row.barcode,
+        favorite: row.favorite,
+      );
+    }).toList();
+  }
+
+  Future<void> saveProduct(domain.Product product) async {
+    await database
+        .into(database.products)
+        .insertOnConflictUpdate(
+          db.ProductsCompanion.insert(
+            id: drift.Value(product.id),
+            name: product.name,
+            salePrice: product.salePrice,
+            purchasePrice: product.purchasePrice,
+            imagePath: product.imagePath,
+            category: product.category,
+            stock: drift.Value(product.stock),
+            isActive: drift.Value(product.isActive),
+            description: drift.Value(product.description),
+            barcode: drift.Value(product.barcode),
+            favorite: drift.Value(product.favorite),
+          ),
+        );
+  }
+
+  Future<void> saveProducts(List<domain.Product> products) async {
+    await database.batch((batch) {
+      for (final product in products) {
+        batch.insert(
+          database.products,
+          db.ProductsCompanion.insert(
+            id: drift.Value(product.id),
+            name: product.name,
+            salePrice: product.salePrice,
+            purchasePrice: product.purchasePrice,
+            imagePath: product.imagePath,
+            category: product.category,
+            stock: drift.Value(product.stock),
+            isActive: drift.Value(product.isActive),
+            description: drift.Value(product.description),
+            barcode: drift.Value(product.barcode),
+            favorite: drift.Value(product.favorite),
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  Future<void> deleteProduct(int productId) async {
+    await (database.delete(
+      database.products,
+    )..where((table) => table.id.equals(productId))).go();
+  }
+}
