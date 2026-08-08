@@ -1,3 +1,4 @@
+import 'cash_service.dart';
 import 'product_service.dart';
 import 'sale_service.dart';
 import 'table_service.dart';
@@ -15,6 +16,10 @@ class Services {
 
   static SaleService get sales {
     return SaleService.instance;
+  }
+
+  static CashService get cash {
+    return CashService.instance;
   }
 
   static void initialize() {

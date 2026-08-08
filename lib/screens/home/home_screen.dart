@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/business_config.dart';
 import '../../widgets/navigation/main_navigation.dart';
+import '../cash/cash_screen.dart';
 import '../history/history_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tables/tables_screen.dart';
@@ -20,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
     TablesScreen(),
     _InvoicePlaceholder(),
     HistoryScreen(),
+    CashScreen(),
     SettingsScreen(),
   ];
 

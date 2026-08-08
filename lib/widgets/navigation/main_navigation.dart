@@ -14,7 +14,7 @@ class MainNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = ['Mesas', 'Factura', 'Historial', 'Ajustes'];
+    const items = ['Mesas', 'Factura', 'Historial', 'Caja', 'Ajustes'];
 
     return Container(
       height: 50,
@@ -31,7 +31,9 @@ class MainNavigation extends StatelessWidget {
 
           return Expanded(
             child: InkWell(
-              onTap: () => onItemSelected(index),
+              onTap: () {
+                onItemSelected(index);
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 alignment: Alignment.center,
@@ -40,9 +42,10 @@ class MainNavigation extends StatelessWidget {
                 ),
                 child: Text(
                   items[index],
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: isSelected ? Colors.black : AppColors.textPrimary,
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
