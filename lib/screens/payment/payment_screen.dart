@@ -5,6 +5,8 @@ import '../../core/business_config.dart';
 import '../../core/currency_formatter.dart';
 import '../../models/payment.dart';
 import '../../models/payment_method.dart';
+import '../../models/sale_draft.dart';
+import '../../models/sale_type.dart';
 import '../../models/table_account.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/payment/cash_payment_view.dart';
@@ -13,9 +15,18 @@ import '../../widgets/payment/payment_method_card.dart';
 enum _SelectedPaymentMethod { cash, card, transfer, mixed }
 
 class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({super.key, required this.account});
+  const PaymentScreen({super.key, this.account, this.draft})
+    : assert(
+        account != null || draft != null,
+        'PaymentScreen necesita una cuenta o una venta.',
+      ),
+      assert(
+        account == null || draft == null,
+        'PaymentScreen solo puede recibir una cuenta o una venta.',
+      );
 
-  final TableAccount account;
+  final TableAccount? account;
+  final SaleDraft? draft;
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -45,7 +56,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   bool _processingPayment = false;
 
-  TableAccount get account => widget.account;
+  bool get _isTableSale => widget.account != null;
+
+  double get _total {
+    if (widget.account != null) {
+      return widget.account!.subtotal;
+    }
+
+    return widget.draft!.total;
+  }
+
+  String get _screenTitle {
+    if (widget.account != null) {
+      return 'Cobrar - ${widget.account!.customerName}';
+    }
+
+    switch (widget.draft!.type) {
+      case SaleType.quickSale:
+        return 'Cobrar - Venta rápida';
+
+      case SaleType.takeaway:
+        return 'Cobrar - Para llevar';
+
+      case SaleType.delivery:
+        return 'Cobrar - Delivery';
+
+      case SaleType.table:
+        return 'Cobrar';
+    }
+  }
 
   @override
   void dispose() {
@@ -65,7 +104,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Cobrar - ${account.customerName}')),
+      appBar: AppBar(title: Text(_screenTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -78,7 +117,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _TotalCard(total: account.subtotal),
+              _TotalCard(total: _total),
               const SizedBox(height: 20),
               if (selectedMethod == null)
                 _buildPaymentMethods()
@@ -103,7 +142,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
         const SizedBox(height: 12),
 
         if (BusinessConfig.enableCashPayment) ...[
@@ -185,9 +223,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             label: const Text('CAMBIAR MÉTODO'),
           ),
         ),
-
         const SizedBox(height: 6),
-
         _buildSelectedPaymentView(),
       ],
     );
@@ -196,12 +232,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _buildSelectedPaymentView() {
     switch (selectedMethod) {
       case _SelectedPaymentMethod.cash:
-        return CashPaymentView(
-          total: account.subtotal,
-          onConfirm: (received) {
-            _confirmCashPayment(received);
-          },
-        );
+        return CashPaymentView(total: _total, onConfirm: _confirmCashPayment);
 
       case _SelectedPaymentMethod.card:
         return _buildCardPaymentView();
@@ -229,9 +260,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Icon(Icons.credit_card, color: AppColors.goldLight, size: 38),
-
           const SizedBox(height: 12),
-
           const Text(
             'PAGO CON TARJETA',
             textAlign: TextAlign.center,
@@ -241,11 +270,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 8),
-
           Text(
-            'Monto: ${CurrencyFormatter.format(account.subtotal)}',
+            'Monto: ${CurrencyFormatter.format(_total)}',
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.goldLight,
@@ -253,9 +280,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 18),
-
           TextField(
             controller: _cardReferenceController,
             enabled: !_processingPayment,
@@ -271,9 +296,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               }
             },
           ),
-
           const SizedBox(height: 18),
-
           SizedBox(
             height: 50,
             child: FilledButton.icon(
@@ -311,9 +334,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             color: AppColors.goldLight,
             size: 38,
           ),
-
           const SizedBox(height: 12),
-
           const Text(
             'PAGO POR TRANSFERENCIA',
             textAlign: TextAlign.center,
@@ -323,11 +344,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 8),
-
           Text(
-            'Monto: ${CurrencyFormatter.format(account.subtotal)}',
+            'Monto: ${CurrencyFormatter.format(_total)}',
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.goldLight,
@@ -335,9 +354,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 18),
-
           TextField(
             controller: _transferReferenceController,
             enabled: !_processingPayment,
@@ -353,9 +370,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               }
             },
           ),
-
           const SizedBox(height: 18),
-
           SizedBox(
             height: 50,
             child: FilledButton.icon(
@@ -388,7 +403,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     final paid = cash + card + transfer;
 
-    final remaining = account.subtotal - paid;
+    final remaining = _total - paid;
 
     final activeMethods = [
       cash,
@@ -413,9 +428,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Icon(Icons.call_split, color: AppColors.goldLight, size: 38),
-
           const SizedBox(height: 12),
-
           const Text(
             'PAGO MIXTO',
             textAlign: TextAlign.center,
@@ -425,11 +438,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 8),
-
           Text(
-            'Total: ${CurrencyFormatter.format(account.subtotal)}',
+            'Total: ${CurrencyFormatter.format(_total)}',
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.goldLight,
@@ -437,7 +448,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 20),
 
           TextField(
@@ -525,9 +535,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   label: 'Total pagado',
                   value: CurrencyFormatter.format(paid),
                 ),
-
                 const SizedBox(height: 8),
-
                 _PaymentInfoRow(
                   label: remaining >= 0 ? 'Falta' : 'Excede',
                   value: CurrencyFormatter.format(remaining.abs()),
@@ -577,10 +585,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
       _processingPayment = true;
     });
 
-    final sale = await Services.sales.closeTableSaleWithCash(
-      account: account,
-      receivedAmount: receivedAmount,
-    );
+    final sale = _isTableSale
+        ? await Services.sales.closeTableSaleWithCash(
+            account: widget.account!,
+            receivedAmount: receivedAmount,
+          )
+        : await Services.sales.closeDraftSaleWithCash(
+            draft: widget.draft!,
+            receivedAmount: receivedAmount,
+          );
 
     if (!mounted) {
       return;
@@ -625,10 +638,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     final reference = _cardReferenceController.text.trim();
 
-    final sale = await Services.sales.closeTableSaleWithCard(
-      account: account,
-      reference: reference.isEmpty ? null : reference,
-    );
+    final cleanReference = reference.isEmpty ? null : reference;
+
+    final sale = _isTableSale
+        ? await Services.sales.closeTableSaleWithCard(
+            account: widget.account!,
+            reference: cleanReference,
+          )
+        : await Services.sales.closeDraftSaleWithCard(
+            draft: widget.draft!,
+            reference: cleanReference,
+          );
 
     if (!mounted) {
       return;
@@ -668,10 +688,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     final reference = _transferReferenceController.text.trim();
 
-    final sale = await Services.sales.closeTableSaleWithTransfer(
-      account: account,
-      reference: reference.isEmpty ? null : reference,
-    );
+    final cleanReference = reference.isEmpty ? null : reference;
+
+    final sale = _isTableSale
+        ? await Services.sales.closeTableSaleWithTransfer(
+            account: widget.account!,
+            reference: cleanReference,
+          )
+        : await Services.sales.closeDraftSaleWithTransfer(
+            draft: widget.draft!,
+            reference: cleanReference,
+          );
 
     if (!mounted) {
       return;
@@ -749,10 +776,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
       _processingPayment = true;
     });
 
-    final sale = await Services.sales.closeTableSaleWithMixedPayments(
-      account: account,
-      payments: payments,
-    );
+    final sale = _isTableSale
+        ? await Services.sales.closeTableSaleWithMixedPayments(
+            account: widget.account!,
+            payments: payments,
+          )
+        : await Services.sales.closeDraftSaleWithMixedPayments(
+            draft: widget.draft!,
+            payments: payments,
+          );
 
     if (!mounted) {
       return;
@@ -830,9 +862,7 @@ class _TotalCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 8),
-
           Text(
             CurrencyFormatter.format(total),
             style: const TextStyle(

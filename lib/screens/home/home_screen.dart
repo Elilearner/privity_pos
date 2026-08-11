@@ -4,6 +4,7 @@ import '../../core/business_config.dart';
 import '../../widgets/navigation/main_navigation.dart';
 import '../cash/cash_screen.dart';
 import '../history/history_screen.dart';
+import '../quick_sale/quick_sale_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tables/tables_screen.dart';
 
@@ -17,16 +18,49 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 0;
 
-  final List<Widget> pages = const [
-    TablesScreen(),
-    _InvoicePlaceholder(),
-    HistoryScreen(),
-    CashScreen(),
-    SettingsScreen(),
-  ];
+  List<_HomeNavigationItem> get navigationItems {
+    final items = <_HomeNavigationItem>[];
+
+    if (BusinessConfig.enableTableSales) {
+      items.add(
+        const _HomeNavigationItem(title: 'Mesas', page: TablesScreen()),
+      );
+    }
+
+    if (BusinessConfig.enableQuickSale) {
+      items.add(
+        const _HomeNavigationItem(
+          title: 'Venta rápida',
+          page: QuickSaleScreen(),
+        ),
+      );
+    }
+
+    items.add(
+      const _HomeNavigationItem(title: 'Factura', page: _InvoicePlaceholder()),
+    );
+
+    items.add(
+      const _HomeNavigationItem(title: 'Historial', page: HistoryScreen()),
+    );
+
+    items.add(const _HomeNavigationItem(title: 'Caja', page: CashScreen()));
+
+    items.add(
+      const _HomeNavigationItem(title: 'Ajustes', page: SettingsScreen()),
+    );
+
+    return items;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final items = navigationItems;
+
+    if (selectedIndex >= items.length) {
+      selectedIndex = 0;
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -52,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           MainNavigation(
+            items: items.map((item) => item.title).toList(),
             selectedIndex: selectedIndex,
             onItemSelected: (index) {
               setState(() {
@@ -60,12 +95,22 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           Expanded(
-            child: IndexedStack(index: selectedIndex, children: pages),
+            child: IndexedStack(
+              index: selectedIndex,
+              children: items.map((item) => item.page).toList(),
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+class _HomeNavigationItem {
+  const _HomeNavigationItem({required this.title, required this.page});
+
+  final String title;
+  final Widget page;
 }
 
 class _InvoicePlaceholder extends StatelessWidget {
@@ -82,8 +127,9 @@ class _InvoicePlaceholder extends StatelessWidget {
             Icon(Icons.receipt_long_outlined, size: 54),
             SizedBox(height: 14),
             Text(
-              'Selecciona una mesa y una cuenta '
-              'para abrir la factura.',
+              'Selecciona una mesa '
+              'y una cuenta para '
+              'abrir la factura.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),

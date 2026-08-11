@@ -12,7 +12,11 @@ class BusinessConfig {
   static const bool enableMultipleAccounts = true;
 
   // Tipos de venta
+  static const bool enableTableSales = true;
+
   static const bool enableQuickSale = true;
+
+  static const bool enableTakeaway = true;
 
   static const bool enableDelivery = true;
 

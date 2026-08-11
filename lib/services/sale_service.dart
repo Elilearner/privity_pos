@@ -7,6 +7,7 @@ import '../models/payment.dart';
 import '../models/payment_method.dart';
 import '../models/product.dart';
 import '../models/sale.dart';
+import '../models/sale_draft.dart';
 import '../models/sale_type.dart';
 import '../models/table_account.dart';
 import 'table_service.dart';
@@ -53,6 +54,10 @@ class SaleService extends ChangeNotifier {
 
     _initialized = true;
   }
+
+  // =========================================================
+  // PRODUCTOS EN CUENTAS DE MESA
+  // =========================================================
 
   void addProductToAccount({
     required TableAccount account,
@@ -135,6 +140,10 @@ class SaleService extends ChangeNotifier {
     return _findItem(account: account, productId: productId);
   }
 
+  // =========================================================
+  // VENTAS DE MESA
+  // =========================================================
+
   Future<Sale?> closeTableSale({
     required TableAccount account,
     required List<Payment> payments,
@@ -143,27 +152,8 @@ class SaleService extends ChangeNotifier {
       return null;
     }
 
-    if (payments.isEmpty) {
+    if (!_paymentsAreValid(total: account.subtotal, payments: payments)) {
       return null;
-    }
-
-    final total = account.subtotal;
-
-    final amountPaid = payments.fold<double>(
-      0,
-      (sum, payment) => sum + payment.amount,
-    );
-
-    const tolerance = 0.01;
-
-    if ((amountPaid - total).abs() > tolerance) {
-      return null;
-    }
-
-    for (final payment in payments) {
-      if (payment.amount <= 0) {
-        return null;
-      }
     }
 
     final sale = Sale(
@@ -195,11 +185,7 @@ class SaleService extends ChangeNotifier {
       return null;
     }
 
-    _nextSaleId++;
-
-    _sales.add(sale);
-
-    notifyListeners();
+    _registerCompletedSale(sale);
 
     return sale;
   }
@@ -260,6 +246,109 @@ class SaleService extends ChangeNotifier {
     return closeTableSale(account: account, payments: payments);
   }
 
+  // =========================================================
+  // VENTA RÁPIDA / PARA LLEVAR / DELIVERY
+  // =========================================================
+
+  Future<Sale?> closeDraftSale({
+    required SaleDraft draft,
+    required List<Payment> payments,
+  }) async {
+    if (draft.items.isEmpty) {
+      return null;
+    }
+
+    if (!_isSupportedDraftType(draft.type)) {
+      return null;
+    }
+
+    if (!_paymentsAreValid(total: draft.subtotal, payments: payments)) {
+      return null;
+    }
+
+    final sale = Sale(
+      id: _nextSaleId,
+      type: draft.type,
+      createdAt: DateTime.now(),
+      items: List<InvoiceItem>.from(draft.items),
+      customerName: _cleanReference(draft.customerName),
+      payments: List<Payment>.from(payments),
+      isClosed: true,
+    );
+
+    try {
+      await _repository.saveSale(sale);
+    } catch (_) {
+      return null;
+    }
+
+    _registerCompletedSale(sale);
+
+    draft.clear();
+
+    return sale;
+  }
+
+  Future<Sale?> closeDraftSaleWithCash({
+    required SaleDraft draft,
+    required double receivedAmount,
+  }) async {
+    final total = draft.subtotal;
+
+    if (receivedAmount < total) {
+      return null;
+    }
+
+    final payment = Payment(
+      method: PaymentMethod.cash,
+      amount: total,
+      receivedAmount: receivedAmount,
+    );
+
+    return closeDraftSale(draft: draft, payments: [payment]);
+  }
+
+  Future<Sale?> closeDraftSaleWithCard({
+    required SaleDraft draft,
+    String? reference,
+  }) async {
+    final payment = Payment(
+      method: PaymentMethod.card,
+      amount: draft.subtotal,
+      reference: _cleanReference(reference),
+    );
+
+    return closeDraftSale(draft: draft, payments: [payment]);
+  }
+
+  Future<Sale?> closeDraftSaleWithTransfer({
+    required SaleDraft draft,
+    String? reference,
+  }) async {
+    final payment = Payment(
+      method: PaymentMethod.transfer,
+      amount: draft.subtotal,
+      reference: _cleanReference(reference),
+    );
+
+    return closeDraftSale(draft: draft, payments: [payment]);
+  }
+
+  Future<Sale?> closeDraftSaleWithMixedPayments({
+    required SaleDraft draft,
+    required List<Payment> payments,
+  }) async {
+    if (payments.length < 2) {
+      return null;
+    }
+
+    return closeDraftSale(draft: draft, payments: payments);
+  }
+
+  // =========================================================
+  // CONSULTAS
+  // =========================================================
+
   Sale? getSale(int saleId) {
     for (final sale in _sales) {
       if (sale.id == saleId) {
@@ -278,6 +367,48 @@ class SaleService extends ChangeNotifier {
     return _sales.length;
   }
 
+  // =========================================================
+  // MÉTODOS INTERNOS
+  // =========================================================
+
+  void _registerCompletedSale(Sale sale) {
+    _nextSaleId++;
+
+    _sales.add(sale);
+
+    notifyListeners();
+  }
+
+  bool _paymentsAreValid({
+    required double total,
+    required List<Payment> payments,
+  }) {
+    if (payments.isEmpty) {
+      return false;
+    }
+
+    for (final payment in payments) {
+      if (payment.amount <= 0) {
+        return false;
+      }
+    }
+
+    final amountPaid = payments.fold<double>(
+      0,
+      (sum, payment) => sum + payment.amount,
+    );
+
+    const tolerance = 0.01;
+
+    return (amountPaid - total).abs() <= tolerance;
+  }
+
+  bool _isSupportedDraftType(SaleType type) {
+    return type == SaleType.quickSale ||
+        type == SaleType.takeaway ||
+        type == SaleType.delivery;
+  }
+
   InvoiceItem? _findItem({
     required TableAccount account,
     required int productId,
@@ -291,13 +422,13 @@ class SaleService extends ChangeNotifier {
     return null;
   }
 
-  String? _cleanReference(String? reference) {
-    final value = reference?.trim();
+  String? _cleanReference(String? value) {
+    final cleanValue = value?.trim();
 
-    if (value == null || value.isEmpty) {
+    if (cleanValue == null || cleanValue.isEmpty) {
       return null;
     }
 
-    return value;
+    return cleanValue;
   }
 }
