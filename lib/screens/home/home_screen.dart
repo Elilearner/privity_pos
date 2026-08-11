@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import '../../core/business_config.dart';
 import '../../widgets/navigation/main_navigation.dart';
 import '../cash/cash_screen.dart';
+import '../delivery/delivery_screen.dart';
 import '../history/history_screen.dart';
 import '../quick_sale/quick_sale_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tables/tables_screen.dart';
+import '../takeaway/takeaway_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,6 +35,18 @@ class _HomeScreenState extends State<HomeScreen> {
           title: 'Venta rápida',
           page: QuickSaleScreen(),
         ),
+      );
+    }
+
+    if (BusinessConfig.enableTakeaway) {
+      items.add(
+        const _HomeNavigationItem(title: 'Para llevar', page: TakeawayScreen()),
+      );
+    }
+
+    if (BusinessConfig.enableDelivery) {
+      items.add(
+        const _HomeNavigationItem(title: 'Delivery', page: DeliveryScreen()),
       );
     }
 

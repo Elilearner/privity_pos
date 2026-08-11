@@ -262,7 +262,7 @@ class SaleService extends ChangeNotifier {
       return null;
     }
 
-    if (!_paymentsAreValid(total: draft.subtotal, payments: payments)) {
+    if (!_paymentsAreValid(total: draft.total, payments: payments)) {
       return null;
     }
 
@@ -272,6 +272,11 @@ class SaleService extends ChangeNotifier {
       createdAt: DateTime.now(),
       items: List<InvoiceItem>.from(draft.items),
       customerName: _cleanReference(draft.customerName),
+      customerPhone: _cleanReference(draft.customerPhone),
+      deliveryAddress: _cleanReference(draft.deliveryAddress),
+      deliveryReference: _cleanReference(draft.deliveryReference),
+      deliveryFee: draft.deliveryFee,
+      taxRate: draft.taxRate,
       payments: List<Payment>.from(payments),
       isClosed: true,
     );
@@ -293,7 +298,7 @@ class SaleService extends ChangeNotifier {
     required SaleDraft draft,
     required double receivedAmount,
   }) async {
-    final total = draft.subtotal;
+    final total = draft.total;
 
     if (receivedAmount < total) {
       return null;
@@ -314,7 +319,7 @@ class SaleService extends ChangeNotifier {
   }) async {
     final payment = Payment(
       method: PaymentMethod.card,
-      amount: draft.subtotal,
+      amount: draft.total,
       reference: _cleanReference(reference),
     );
 
@@ -327,7 +332,7 @@ class SaleService extends ChangeNotifier {
   }) async {
     final payment = Payment(
       method: PaymentMethod.transfer,
-      amount: draft.subtotal,
+      amount: draft.total,
       reference: _cleanReference(reference),
     );
 

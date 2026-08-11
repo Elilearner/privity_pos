@@ -6,6 +6,9 @@ class SaleDraft {
     required this.type,
     List<InvoiceItem>? items,
     this.customerName,
+    this.customerPhone,
+    this.deliveryAddress,
+    this.deliveryReference,
     this.deliveryFee = 0,
     this.taxRate = 0,
   }) : items = items ?? [];
@@ -15,6 +18,12 @@ class SaleDraft {
   final List<InvoiceItem> items;
 
   String? customerName;
+
+  String? customerPhone;
+
+  String? deliveryAddress;
+
+  String? deliveryReference;
 
   double deliveryFee;
 

@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(driftDatabase(name: 'privity_pos'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -43,11 +43,20 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 4) {
           await m.createTable(tableAccounts);
+
           await m.createTable(accountItems);
         }
 
         if (from < 5) {
           await m.createTable(cashSessions);
+        }
+
+        if (from < 6) {
+          await m.addColumn(sales, sales.customerPhone);
+
+          await m.addColumn(sales, sales.deliveryAddress);
+
+          await m.addColumn(sales, sales.deliveryReference);
         }
       },
     );

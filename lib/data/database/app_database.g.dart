@@ -713,6 +713,40 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _customerPhoneMeta = const VerificationMeta(
+    'customerPhone',
+  );
+  @override
+  late final GeneratedColumn<String> customerPhone = GeneratedColumn<String>(
+    'customer_phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deliveryAddressMeta = const VerificationMeta(
+    'deliveryAddress',
+  );
+  @override
+  late final GeneratedColumn<String> deliveryAddress = GeneratedColumn<String>(
+    'delivery_address',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deliveryReferenceMeta = const VerificationMeta(
+    'deliveryReference',
+  );
+  @override
+  late final GeneratedColumn<String> deliveryReference =
+      GeneratedColumn<String>(
+        'delivery_reference',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _deliveryFeeMeta = const VerificationMeta(
     'deliveryFee',
   );
@@ -760,6 +794,9 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
     tableNumber,
     accountId,
     customerName,
+    customerPhone,
+    deliveryAddress,
+    deliveryReference,
     deliveryFee,
     taxRate,
     isClosed,
@@ -819,6 +856,33 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
         ),
       );
     }
+    if (data.containsKey('customer_phone')) {
+      context.handle(
+        _customerPhoneMeta,
+        customerPhone.isAcceptableOrUnknown(
+          data['customer_phone']!,
+          _customerPhoneMeta,
+        ),
+      );
+    }
+    if (data.containsKey('delivery_address')) {
+      context.handle(
+        _deliveryAddressMeta,
+        deliveryAddress.isAcceptableOrUnknown(
+          data['delivery_address']!,
+          _deliveryAddressMeta,
+        ),
+      );
+    }
+    if (data.containsKey('delivery_reference')) {
+      context.handle(
+        _deliveryReferenceMeta,
+        deliveryReference.isAcceptableOrUnknown(
+          data['delivery_reference']!,
+          _deliveryReferenceMeta,
+        ),
+      );
+    }
     if (data.containsKey('delivery_fee')) {
       context.handle(
         _deliveryFeeMeta,
@@ -873,6 +937,18 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
         DriftSqlType.string,
         data['${effectivePrefix}customer_name'],
       ),
+      customerPhone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}customer_phone'],
+      ),
+      deliveryAddress: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}delivery_address'],
+      ),
+      deliveryReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}delivery_reference'],
+      ),
       deliveryFee: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}delivery_fee'],
@@ -901,6 +977,9 @@ class Sale extends DataClass implements Insertable<Sale> {
   final int? tableNumber;
   final int? accountId;
   final String? customerName;
+  final String? customerPhone;
+  final String? deliveryAddress;
+  final String? deliveryReference;
   final double deliveryFee;
   final double taxRate;
   final bool isClosed;
@@ -911,6 +990,9 @@ class Sale extends DataClass implements Insertable<Sale> {
     this.tableNumber,
     this.accountId,
     this.customerName,
+    this.customerPhone,
+    this.deliveryAddress,
+    this.deliveryReference,
     required this.deliveryFee,
     required this.taxRate,
     required this.isClosed,
@@ -929,6 +1011,15 @@ class Sale extends DataClass implements Insertable<Sale> {
     }
     if (!nullToAbsent || customerName != null) {
       map['customer_name'] = Variable<String>(customerName);
+    }
+    if (!nullToAbsent || customerPhone != null) {
+      map['customer_phone'] = Variable<String>(customerPhone);
+    }
+    if (!nullToAbsent || deliveryAddress != null) {
+      map['delivery_address'] = Variable<String>(deliveryAddress);
+    }
+    if (!nullToAbsent || deliveryReference != null) {
+      map['delivery_reference'] = Variable<String>(deliveryReference);
     }
     map['delivery_fee'] = Variable<double>(deliveryFee);
     map['tax_rate'] = Variable<double>(taxRate);
@@ -950,6 +1041,15 @@ class Sale extends DataClass implements Insertable<Sale> {
       customerName: customerName == null && nullToAbsent
           ? const Value.absent()
           : Value(customerName),
+      customerPhone: customerPhone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerPhone),
+      deliveryAddress: deliveryAddress == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveryAddress),
+      deliveryReference: deliveryReference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveryReference),
       deliveryFee: Value(deliveryFee),
       taxRate: Value(taxRate),
       isClosed: Value(isClosed),
@@ -968,6 +1068,11 @@ class Sale extends DataClass implements Insertable<Sale> {
       tableNumber: serializer.fromJson<int?>(json['tableNumber']),
       accountId: serializer.fromJson<int?>(json['accountId']),
       customerName: serializer.fromJson<String?>(json['customerName']),
+      customerPhone: serializer.fromJson<String?>(json['customerPhone']),
+      deliveryAddress: serializer.fromJson<String?>(json['deliveryAddress']),
+      deliveryReference: serializer.fromJson<String?>(
+        json['deliveryReference'],
+      ),
       deliveryFee: serializer.fromJson<double>(json['deliveryFee']),
       taxRate: serializer.fromJson<double>(json['taxRate']),
       isClosed: serializer.fromJson<bool>(json['isClosed']),
@@ -983,6 +1088,9 @@ class Sale extends DataClass implements Insertable<Sale> {
       'tableNumber': serializer.toJson<int?>(tableNumber),
       'accountId': serializer.toJson<int?>(accountId),
       'customerName': serializer.toJson<String?>(customerName),
+      'customerPhone': serializer.toJson<String?>(customerPhone),
+      'deliveryAddress': serializer.toJson<String?>(deliveryAddress),
+      'deliveryReference': serializer.toJson<String?>(deliveryReference),
       'deliveryFee': serializer.toJson<double>(deliveryFee),
       'taxRate': serializer.toJson<double>(taxRate),
       'isClosed': serializer.toJson<bool>(isClosed),
@@ -996,6 +1104,9 @@ class Sale extends DataClass implements Insertable<Sale> {
     Value<int?> tableNumber = const Value.absent(),
     Value<int?> accountId = const Value.absent(),
     Value<String?> customerName = const Value.absent(),
+    Value<String?> customerPhone = const Value.absent(),
+    Value<String?> deliveryAddress = const Value.absent(),
+    Value<String?> deliveryReference = const Value.absent(),
     double? deliveryFee,
     double? taxRate,
     bool? isClosed,
@@ -1006,6 +1117,15 @@ class Sale extends DataClass implements Insertable<Sale> {
     tableNumber: tableNumber.present ? tableNumber.value : this.tableNumber,
     accountId: accountId.present ? accountId.value : this.accountId,
     customerName: customerName.present ? customerName.value : this.customerName,
+    customerPhone: customerPhone.present
+        ? customerPhone.value
+        : this.customerPhone,
+    deliveryAddress: deliveryAddress.present
+        ? deliveryAddress.value
+        : this.deliveryAddress,
+    deliveryReference: deliveryReference.present
+        ? deliveryReference.value
+        : this.deliveryReference,
     deliveryFee: deliveryFee ?? this.deliveryFee,
     taxRate: taxRate ?? this.taxRate,
     isClosed: isClosed ?? this.isClosed,
@@ -1022,6 +1142,15 @@ class Sale extends DataClass implements Insertable<Sale> {
       customerName: data.customerName.present
           ? data.customerName.value
           : this.customerName,
+      customerPhone: data.customerPhone.present
+          ? data.customerPhone.value
+          : this.customerPhone,
+      deliveryAddress: data.deliveryAddress.present
+          ? data.deliveryAddress.value
+          : this.deliveryAddress,
+      deliveryReference: data.deliveryReference.present
+          ? data.deliveryReference.value
+          : this.deliveryReference,
       deliveryFee: data.deliveryFee.present
           ? data.deliveryFee.value
           : this.deliveryFee,
@@ -1039,6 +1168,9 @@ class Sale extends DataClass implements Insertable<Sale> {
           ..write('tableNumber: $tableNumber, ')
           ..write('accountId: $accountId, ')
           ..write('customerName: $customerName, ')
+          ..write('customerPhone: $customerPhone, ')
+          ..write('deliveryAddress: $deliveryAddress, ')
+          ..write('deliveryReference: $deliveryReference, ')
           ..write('deliveryFee: $deliveryFee, ')
           ..write('taxRate: $taxRate, ')
           ..write('isClosed: $isClosed')
@@ -1054,6 +1186,9 @@ class Sale extends DataClass implements Insertable<Sale> {
     tableNumber,
     accountId,
     customerName,
+    customerPhone,
+    deliveryAddress,
+    deliveryReference,
     deliveryFee,
     taxRate,
     isClosed,
@@ -1068,6 +1203,9 @@ class Sale extends DataClass implements Insertable<Sale> {
           other.tableNumber == this.tableNumber &&
           other.accountId == this.accountId &&
           other.customerName == this.customerName &&
+          other.customerPhone == this.customerPhone &&
+          other.deliveryAddress == this.deliveryAddress &&
+          other.deliveryReference == this.deliveryReference &&
           other.deliveryFee == this.deliveryFee &&
           other.taxRate == this.taxRate &&
           other.isClosed == this.isClosed);
@@ -1080,6 +1218,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
   final Value<int?> tableNumber;
   final Value<int?> accountId;
   final Value<String?> customerName;
+  final Value<String?> customerPhone;
+  final Value<String?> deliveryAddress;
+  final Value<String?> deliveryReference;
   final Value<double> deliveryFee;
   final Value<double> taxRate;
   final Value<bool> isClosed;
@@ -1090,6 +1231,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     this.tableNumber = const Value.absent(),
     this.accountId = const Value.absent(),
     this.customerName = const Value.absent(),
+    this.customerPhone = const Value.absent(),
+    this.deliveryAddress = const Value.absent(),
+    this.deliveryReference = const Value.absent(),
     this.deliveryFee = const Value.absent(),
     this.taxRate = const Value.absent(),
     this.isClosed = const Value.absent(),
@@ -1101,6 +1245,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     this.tableNumber = const Value.absent(),
     this.accountId = const Value.absent(),
     this.customerName = const Value.absent(),
+    this.customerPhone = const Value.absent(),
+    this.deliveryAddress = const Value.absent(),
+    this.deliveryReference = const Value.absent(),
     this.deliveryFee = const Value.absent(),
     this.taxRate = const Value.absent(),
     this.isClosed = const Value.absent(),
@@ -1113,6 +1260,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     Expression<int>? tableNumber,
     Expression<int>? accountId,
     Expression<String>? customerName,
+    Expression<String>? customerPhone,
+    Expression<String>? deliveryAddress,
+    Expression<String>? deliveryReference,
     Expression<double>? deliveryFee,
     Expression<double>? taxRate,
     Expression<bool>? isClosed,
@@ -1124,6 +1274,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       if (tableNumber != null) 'table_number': tableNumber,
       if (accountId != null) 'account_id': accountId,
       if (customerName != null) 'customer_name': customerName,
+      if (customerPhone != null) 'customer_phone': customerPhone,
+      if (deliveryAddress != null) 'delivery_address': deliveryAddress,
+      if (deliveryReference != null) 'delivery_reference': deliveryReference,
       if (deliveryFee != null) 'delivery_fee': deliveryFee,
       if (taxRate != null) 'tax_rate': taxRate,
       if (isClosed != null) 'is_closed': isClosed,
@@ -1137,6 +1290,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     Value<int?>? tableNumber,
     Value<int?>? accountId,
     Value<String?>? customerName,
+    Value<String?>? customerPhone,
+    Value<String?>? deliveryAddress,
+    Value<String?>? deliveryReference,
     Value<double>? deliveryFee,
     Value<double>? taxRate,
     Value<bool>? isClosed,
@@ -1148,6 +1304,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       tableNumber: tableNumber ?? this.tableNumber,
       accountId: accountId ?? this.accountId,
       customerName: customerName ?? this.customerName,
+      customerPhone: customerPhone ?? this.customerPhone,
+      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+      deliveryReference: deliveryReference ?? this.deliveryReference,
       deliveryFee: deliveryFee ?? this.deliveryFee,
       taxRate: taxRate ?? this.taxRate,
       isClosed: isClosed ?? this.isClosed,
@@ -1175,6 +1334,15 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     if (customerName.present) {
       map['customer_name'] = Variable<String>(customerName.value);
     }
+    if (customerPhone.present) {
+      map['customer_phone'] = Variable<String>(customerPhone.value);
+    }
+    if (deliveryAddress.present) {
+      map['delivery_address'] = Variable<String>(deliveryAddress.value);
+    }
+    if (deliveryReference.present) {
+      map['delivery_reference'] = Variable<String>(deliveryReference.value);
+    }
     if (deliveryFee.present) {
       map['delivery_fee'] = Variable<double>(deliveryFee.value);
     }
@@ -1196,6 +1364,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
           ..write('tableNumber: $tableNumber, ')
           ..write('accountId: $accountId, ')
           ..write('customerName: $customerName, ')
+          ..write('customerPhone: $customerPhone, ')
+          ..write('deliveryAddress: $deliveryAddress, ')
+          ..write('deliveryReference: $deliveryReference, ')
           ..write('deliveryFee: $deliveryFee, ')
           ..write('taxRate: $taxRate, ')
           ..write('isClosed: $isClosed')
@@ -3842,6 +4013,9 @@ typedef $$SalesTableCreateCompanionBuilder =
       Value<int?> tableNumber,
       Value<int?> accountId,
       Value<String?> customerName,
+      Value<String?> customerPhone,
+      Value<String?> deliveryAddress,
+      Value<String?> deliveryReference,
       Value<double> deliveryFee,
       Value<double> taxRate,
       Value<bool> isClosed,
@@ -3854,6 +4028,9 @@ typedef $$SalesTableUpdateCompanionBuilder =
       Value<int?> tableNumber,
       Value<int?> accountId,
       Value<String?> customerName,
+      Value<String?> customerPhone,
+      Value<String?> deliveryAddress,
+      Value<String?> deliveryReference,
       Value<double> deliveryFee,
       Value<double> taxRate,
       Value<bool> isClosed,
@@ -3894,6 +4071,21 @@ class $$SalesTableFilterComposer extends Composer<_$AppDatabase, $SalesTable> {
 
   ColumnFilters<String> get customerName => $composableBuilder(
     column: $table.customerName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get customerPhone => $composableBuilder(
+    column: $table.customerPhone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deliveryAddress => $composableBuilder(
+    column: $table.deliveryAddress,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deliveryReference => $composableBuilder(
+    column: $table.deliveryReference,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3952,6 +4144,21 @@ class $$SalesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get customerPhone => $composableBuilder(
+    column: $table.customerPhone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deliveryAddress => $composableBuilder(
+    column: $table.deliveryAddress,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deliveryReference => $composableBuilder(
+    column: $table.deliveryReference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get deliveryFee => $composableBuilder(
     column: $table.deliveryFee,
     builder: (column) => ColumnOrderings(column),
@@ -3996,6 +4203,21 @@ class $$SalesTableAnnotationComposer
 
   GeneratedColumn<String> get customerName => $composableBuilder(
     column: $table.customerName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get customerPhone => $composableBuilder(
+    column: $table.customerPhone,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get deliveryAddress => $composableBuilder(
+    column: $table.deliveryAddress,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get deliveryReference => $composableBuilder(
+    column: $table.deliveryReference,
     builder: (column) => column,
   );
 
@@ -4045,6 +4267,9 @@ class $$SalesTableTableManager
                 Value<int?> tableNumber = const Value.absent(),
                 Value<int?> accountId = const Value.absent(),
                 Value<String?> customerName = const Value.absent(),
+                Value<String?> customerPhone = const Value.absent(),
+                Value<String?> deliveryAddress = const Value.absent(),
+                Value<String?> deliveryReference = const Value.absent(),
                 Value<double> deliveryFee = const Value.absent(),
                 Value<double> taxRate = const Value.absent(),
                 Value<bool> isClosed = const Value.absent(),
@@ -4055,6 +4280,9 @@ class $$SalesTableTableManager
                 tableNumber: tableNumber,
                 accountId: accountId,
                 customerName: customerName,
+                customerPhone: customerPhone,
+                deliveryAddress: deliveryAddress,
+                deliveryReference: deliveryReference,
                 deliveryFee: deliveryFee,
                 taxRate: taxRate,
                 isClosed: isClosed,
@@ -4067,6 +4295,9 @@ class $$SalesTableTableManager
                 Value<int?> tableNumber = const Value.absent(),
                 Value<int?> accountId = const Value.absent(),
                 Value<String?> customerName = const Value.absent(),
+                Value<String?> customerPhone = const Value.absent(),
+                Value<String?> deliveryAddress = const Value.absent(),
+                Value<String?> deliveryReference = const Value.absent(),
                 Value<double> deliveryFee = const Value.absent(),
                 Value<double> taxRate = const Value.absent(),
                 Value<bool> isClosed = const Value.absent(),
@@ -4077,6 +4308,9 @@ class $$SalesTableTableManager
                 tableNumber: tableNumber,
                 accountId: accountId,
                 customerName: customerName,
+                customerPhone: customerPhone,
+                deliveryAddress: deliveryAddress,
+                deliveryReference: deliveryReference,
                 deliveryFee: deliveryFee,
                 taxRate: taxRate,
                 isClosed: isClosed,

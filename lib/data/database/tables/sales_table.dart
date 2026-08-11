@@ -13,6 +13,12 @@ class Sales extends Table {
 
   TextColumn get customerName => text().nullable()();
 
+  TextColumn get customerPhone => text().nullable()();
+
+  TextColumn get deliveryAddress => text().nullable()();
+
+  TextColumn get deliveryReference => text().nullable()();
+
   RealColumn get deliveryFee => real().withDefault(const Constant(0))();
 
   RealColumn get taxRate => real().withDefault(const Constant(0))();
