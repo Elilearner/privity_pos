@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../models/product.dart';
 import '../../models/table_account.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/products/product_card.dart';
@@ -15,6 +16,8 @@ class ProductPickerScreen extends StatefulWidget {
 
 class _ProductPickerScreenState extends State<ProductPickerScreen> {
   String searchQuery = '';
+
+  bool _savingProduct = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +40,9 @@ class _ProductPickerScreenState extends State<ProductPickerScreen> {
                 });
               },
             ),
+
             const SizedBox(height: 12),
+
             Expanded(
               child: GridView.builder(
                 itemCount: products.length,
@@ -55,12 +60,11 @@ class _ProductPickerScreenState extends State<ProductPickerScreen> {
                     price: product.salePrice,
                     imagePath: product.imagePath,
                     onTap: () {
-                      Services.sales.addProductToAccount(
-                        account: widget.account,
-                        product: product,
-                      );
+                      if (_savingProduct) {
+                        return;
+                      }
 
-                      Navigator.pop(context);
+                      _addProduct(product);
                     },
                   );
                 },
@@ -70,5 +74,24 @@ class _ProductPickerScreenState extends State<ProductPickerScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _addProduct(Product product) async {
+    setState(() {
+      _savingProduct = true;
+    });
+
+    Services.sales.addProductToAccount(
+      account: widget.account,
+      product: product,
+    );
+
+    await Services.tables.saveAccount(widget.account);
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pop();
   }
 }

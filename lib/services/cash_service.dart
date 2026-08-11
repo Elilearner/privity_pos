@@ -1,3 +1,5 @@
+import '../data/database/app_database.dart' as db;
+import '../data/repositories/cash_repository.dart';
 import '../models/cash_session.dart';
 
 class CashService {
@@ -6,6 +8,11 @@ class CashService {
   static final CashService instance = CashService._();
 
   final List<CashSession> _sessions = [];
+
+  late final db.AppDatabase _database;
+  late final CashRepository _repository;
+
+  bool _initialized = false;
 
   int _nextSessionId = 1;
 
@@ -37,7 +44,36 @@ class CashService {
     return activeSession != null;
   }
 
-  CashSession? openCash({required double openingAmount}) {
+  Future<void> initialize() async {
+    if (_initialized) {
+      return;
+    }
+
+    _database = db.AppDatabase();
+    _repository = CashRepository(_database);
+
+    final storedSessions = await _repository.getAllSessions();
+
+    _sessions
+      ..clear()
+      ..addAll(storedSessions.reversed);
+
+    if (_sessions.isNotEmpty) {
+      int highestId = 0;
+
+      for (final session in _sessions) {
+        if (session.id > highestId) {
+          highestId = session.id;
+        }
+      }
+
+      _nextSessionId = highestId + 1;
+    }
+
+    _initialized = true;
+  }
+
+  Future<CashSession?> openCash({required double openingAmount}) async {
     if (hasOpenSession || openingAmount < 0) {
       return null;
     }
@@ -48,6 +84,12 @@ class CashService {
       openingAmount: openingAmount,
     );
 
+    try {
+      await _repository.saveSession(session);
+    } catch (_) {
+      return null;
+    }
+
     _nextSessionId++;
 
     _sessions.add(session);
@@ -55,7 +97,7 @@ class CashService {
     return session;
   }
 
-  bool closeCash({required double closingAmount}) {
+  Future<bool> closeCash({required double closingAmount}) async {
     final session = activeSession;
 
     if (session == null || closingAmount < 0) {
@@ -63,6 +105,12 @@ class CashService {
     }
 
     session.close(amount: closingAmount);
+
+    try {
+      await _repository.saveSession(session);
+    } catch (_) {
+      return false;
+    }
 
     return true;
   }

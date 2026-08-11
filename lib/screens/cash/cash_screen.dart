@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
 import '../../core/currency_formatter.dart';
+import '../../models/cash_session.dart';
 import '../../models/payment_method.dart';
 import '../../models/sale.dart';
 import '../../services/service_locator.dart';
@@ -14,6 +15,28 @@ class CashScreen extends StatefulWidget {
 }
 
 class _CashScreenState extends State<CashScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    Services.sales.addListener(_onSalesChanged);
+  }
+
+  @override
+  void dispose() {
+    Services.sales.removeListener(_onSalesChanged);
+
+    super.dispose();
+  }
+
+  void _onSalesChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = Services.cash.activeSession;
@@ -31,15 +54,12 @@ class _CashScreenState extends State<CashScreen> {
       padding: const EdgeInsets.all(24),
       children: [
         const SizedBox(height: 30),
-
         const Icon(
           Icons.point_of_sale_outlined,
           size: 72,
           color: AppColors.textSecondary,
         ),
-
         const SizedBox(height: 18),
-
         const Text(
           'CAJA CERRADA',
           textAlign: TextAlign.center,
@@ -49,17 +69,13 @@ class _CashScreenState extends State<CashScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
         const SizedBox(height: 8),
-
         const Text(
           'Abre la caja para comenzar una nueva jornada de ventas.',
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
         ),
-
         const SizedBox(height: 24),
-
         SizedBox(
           height: 52,
           child: FilledButton.icon(
@@ -68,10 +84,8 @@ class _CashScreenState extends State<CashScreen> {
             label: const Text('ABRIR CAJA'),
           ),
         ),
-
         if (lastSession != null) ...[
           const SizedBox(height: 30),
-
           const Text(
             'ÚLTIMO CIERRE',
             style: TextStyle(
@@ -80,18 +94,15 @@ class _CashScreenState extends State<CashScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 10),
-
           _buildLastClosedSession(lastSession),
         ],
-
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildLastClosedSession(dynamic session) {
+  Widget _buildLastClosedSession(CashSession session) {
     final closedAt = session.closedAt;
 
     final sessionSales = _getSalesBetween(session.openedAt, closedAt);
@@ -122,41 +133,29 @@ class _CashScreenState extends State<CashScreen> {
             label: 'Monto inicial',
             value: CurrencyFormatter.format(session.openingAmount),
           ),
-
           const SizedBox(height: 10),
-
           _CashInfoRow(label: 'Ventas', value: '${sessionSales.length}'),
-
           const SizedBox(height: 10),
-
           _CashInfoRow(
             label: 'Total vendido',
             value: CurrencyFormatter.format(totalSales),
           ),
-
           const SizedBox(height: 10),
-
           _CashInfoRow(
             label: 'Ventas en efectivo',
             value: CurrencyFormatter.format(cashSales),
           ),
-
           const Divider(height: 28),
-
           _CashInfoRow(
             label: 'Efectivo esperado',
             value: CurrencyFormatter.format(expectedCash),
           ),
-
           const SizedBox(height: 10),
-
           _CashInfoRow(
             label: 'Efectivo contado',
             value: CurrencyFormatter.format(closingAmount),
           ),
-
           const SizedBox(height: 10),
-
           Row(
             children: [
               const Expanded(
@@ -178,13 +177,9 @@ class _CashScreenState extends State<CashScreen> {
               ),
             ],
           ),
-
           const Divider(height: 28),
-
           _CashInfoRow(label: 'Apertura', value: _formatTime(session.openedAt)),
-
           const SizedBox(height: 10),
-
           _CashInfoRow(
             label: 'Cierre',
             value: closedAt == null ? '--' : _formatTime(closedAt),
@@ -236,9 +231,7 @@ class _CashScreenState extends State<CashScreen> {
                 size: 38,
                 color: AppColors.goldLight,
               ),
-
               const SizedBox(height: 10),
-
               const Text(
                 'CAJA ABIERTA',
                 style: TextStyle(
@@ -247,16 +240,12 @@ class _CashScreenState extends State<CashScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 18),
-
               _CashInfoRow(
                 label: 'Monto inicial',
                 value: CurrencyFormatter.format(session.openingAmount),
               ),
-
               const SizedBox(height: 10),
-
               _CashInfoRow(
                 label: 'Hora de apertura',
                 value: _formatTime(session.openedAt),
@@ -264,9 +253,7 @@ class _CashScreenState extends State<CashScreen> {
             ],
           ),
         ),
-
         const SizedBox(height: 18),
-
         const Text(
           'VENTAS DE LA SESIÓN',
           style: TextStyle(
@@ -275,9 +262,7 @@ class _CashScreenState extends State<CashScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
         const SizedBox(height: 10),
-
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -288,30 +273,22 @@ class _CashScreenState extends State<CashScreen> {
           child: Column(
             children: [
               _CashInfoRow(label: 'Ventas', value: '${sessionSales.length}'),
-
               const SizedBox(height: 10),
-
               _CashInfoRow(
                 label: 'Total vendido',
                 value: CurrencyFormatter.format(totalSales),
               ),
-
               const Divider(height: 28),
-
               _CashInfoRow(
                 label: 'Efectivo',
                 value: CurrencyFormatter.format(cashSales),
               ),
-
               const SizedBox(height: 10),
-
               _CashInfoRow(
                 label: 'Tarjeta',
                 value: CurrencyFormatter.format(cardSales),
               ),
-
               const SizedBox(height: 10),
-
               _CashInfoRow(
                 label: 'Transferencia',
                 value: CurrencyFormatter.format(transferSales),
@@ -319,9 +296,7 @@ class _CashScreenState extends State<CashScreen> {
             ],
           ),
         ),
-
         const SizedBox(height: 18),
-
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
@@ -339,9 +314,7 @@ class _CashScreenState extends State<CashScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 10),
-
               Text(
                 CurrencyFormatter.format(expectedCash),
                 style: const TextStyle(
@@ -353,9 +326,7 @@ class _CashScreenState extends State<CashScreen> {
             ],
           ),
         ),
-
         const SizedBox(height: 18),
-
         SizedBox(
           height: 52,
           child: OutlinedButton.icon(
@@ -366,7 +337,6 @@ class _CashScreenState extends State<CashScreen> {
             label: const Text('CERRAR CAJA'),
           ),
         ),
-
         const SizedBox(height: 14),
       ],
     );
@@ -467,13 +437,13 @@ class _CashScreenState extends State<CashScreen> {
       return;
     }
 
-    final session = Services.cash.openCash(openingAmount: openingAmount);
+    final session = await Services.cash.openCash(openingAmount: openingAmount);
+
+    if (!mounted) {
+      return;
+    }
 
     if (session == null) {
-      if (!mounted) {
-        return;
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se pudo abrir la caja.')),
       );
@@ -508,9 +478,7 @@ class _CashScreenState extends State<CashScreen> {
                       label: 'Efectivo esperado',
                       value: CurrencyFormatter.format(expectedCash),
                     ),
-
                     const SizedBox(height: 18),
-
                     TextField(
                       autofocus: true,
                       keyboardType: const TextInputType.numberWithOptions(
@@ -527,9 +495,7 @@ class _CashScreenState extends State<CashScreen> {
                         });
                       },
                     ),
-
                     const SizedBox(height: 18),
-
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(14),
@@ -548,9 +514,7 @@ class _CashScreenState extends State<CashScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-
                           const SizedBox(height: 6),
-
                           Text(
                             _formatDifference(difference),
                             style: TextStyle(
@@ -591,13 +555,13 @@ class _CashScreenState extends State<CashScreen> {
       return;
     }
 
-    final closed = Services.cash.closeCash(closingAmount: closingAmount);
+    final closed = await Services.cash.closeCash(closingAmount: closingAmount);
+
+    if (!mounted) {
+      return;
+    }
 
     if (!closed) {
-      if (!mounted) {
-        return;
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se pudo cerrar la caja.')),
       );
@@ -606,10 +570,6 @@ class _CashScreenState extends State<CashScreen> {
     }
 
     setState(() {});
-
-    if (!mounted) {
-      return;
-    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Caja cerrada correctamente.')),

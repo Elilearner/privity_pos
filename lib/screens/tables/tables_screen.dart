@@ -15,6 +15,28 @@ class TablesScreen extends StatefulWidget {
 
 class _TablesScreenState extends State<TablesScreen> {
   @override
+  void initState() {
+    super.initState();
+
+    Services.tables.addListener(_onTablesChanged);
+  }
+
+  @override
+  void dispose() {
+    Services.tables.removeListener(_onTablesChanged);
+
+    super.dispose();
+  }
+
+  void _onTablesChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final tables = Services.tables.tables;
 
@@ -35,6 +57,7 @@ class _TablesScreenState extends State<TablesScreen> {
               ),
               itemBuilder: (context, index) {
                 final table = tables[index];
+
                 final firstAccount = table.firstAccount;
 
                 return TableCard(
@@ -50,8 +73,7 @@ class _TablesScreenState extends State<TablesScreen> {
                       : _formatTime(firstAccount.openedAt),
                   productCount: table.totalItems,
                   onTap: () async {
-                    await Navigator.push(
-                      context,
+                    await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => AccountsScreen(
                           tableNumber: table.number,

@@ -23,9 +23,9 @@ class Services {
   }
 
   static Future<void> initialize() async {
-    tables.initialize();
-
     await products.initialize();
+    await tables.initialize();
     await sales.initialize();
+    await cash.initialize();
   }
 }

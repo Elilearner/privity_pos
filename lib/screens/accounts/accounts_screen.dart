@@ -147,12 +147,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
       return;
     }
 
-    final account = Services.tables.openAccount(
+    final account = await Services.tables.openAccount(
       tableNumber: widget.tableNumber,
       customerName: customerName,
     );
 
-    if (account == null) {
+    if (!mounted || account == null) {
       return;
     }
 

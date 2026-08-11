@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../data/database/app_database.dart' as db;
 import '../data/repositories/sale_repository.dart';
 import '../models/invoice_item.dart';
@@ -9,7 +11,7 @@ import '../models/sale_type.dart';
 import '../models/table_account.dart';
 import 'table_service.dart';
 
-class SaleService {
+class SaleService extends ChangeNotifier {
   SaleService._();
 
   static final SaleService instance = SaleService._();
@@ -77,6 +79,7 @@ class SaleService {
     }
 
     item.increase();
+
     return true;
   }
 
@@ -95,6 +98,7 @@ class SaleService {
     }
 
     item.decrease();
+
     return true;
   }
 
@@ -169,7 +173,7 @@ class SaleService {
       return null;
     }
 
-    final accountClosed = TableService.instance.closeAccount(
+    final accountClosed = await TableService.instance.closeAccount(
       tableNumber: account.tableNumber,
       accountId: account.id,
     );
@@ -183,6 +187,8 @@ class SaleService {
     _nextSaleId++;
 
     _sales.add(sale);
+
+    notifyListeners();
 
     return sale;
   }

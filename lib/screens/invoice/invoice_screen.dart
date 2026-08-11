@@ -46,6 +46,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               style: const TextStyle(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 20),
+
             Expanded(
               child: account.items.isEmpty
                   ? const Center(
@@ -63,20 +64,42 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
                         return InvoiceItemCard(
                           item: item,
-                          onIncrease: () {
-                            Services.sales.increaseProductQuantity(
-                              account: account,
-                              productId: item.product.id,
-                            );
+                          onIncrease: () async {
+                            final changed = Services.sales
+                                .increaseProductQuantity(
+                                  account: account,
+                                  productId: item.product.id,
+                                );
+
+                            if (!changed) {
+                              return;
+                            }
+
+                            await Services.tables.saveAccount(account);
+
+                            if (!mounted) {
+                              return;
+                            }
 
                             setState(() {});
                           },
                           onDecrease: () async {
                             if (item.quantity > 1) {
-                              Services.sales.decreaseProductQuantity(
-                                account: account,
-                                productId: item.product.id,
-                              );
+                              final changed = Services.sales
+                                  .decreaseProductQuantity(
+                                    account: account,
+                                    productId: item.product.id,
+                                  );
+
+                              if (!changed) {
+                                return;
+                              }
+
+                              await Services.tables.saveAccount(account);
+
+                              if (!mounted) {
+                                return;
+                              }
 
                               setState(() {});
                               return;
@@ -90,10 +113,20 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                               return;
                             }
 
-                            Services.sales.removeProduct(
+                            final removed = Services.sales.removeProduct(
                               account: account,
                               productId: item.product.id,
                             );
+
+                            if (!removed) {
+                              return;
+                            }
+
+                            await Services.tables.saveAccount(account);
+
+                            if (!mounted) {
+                              return;
+                            }
 
                             setState(() {});
                           },
@@ -106,10 +139,20 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                               return;
                             }
 
-                            Services.sales.removeProduct(
+                            final removed = Services.sales.removeProduct(
                               account: account,
                               productId: item.product.id,
                             );
+
+                            if (!removed) {
+                              return;
+                            }
+
+                            await Services.tables.saveAccount(account);
+
+                            if (!mounted) {
+                              return;
+                            }
 
                             setState(() {});
                           },
@@ -117,60 +160,33 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       },
                     ),
             ),
+
             const SizedBox(height: 12),
+
             SizedBox(
               width: double.infinity,
               height: 50,
               child: FilledButton.icon(
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductPickerScreen(account: account),
-                    ),
-                  );
-
-                  if (!context.mounted) {
-                    return;
-                  }
-
-                  setState(() {});
-                },
+                onPressed: _openProductPicker,
                 icon: const Icon(Icons.add_shopping_cart),
                 label: const Text('AGREGAR PRODUCTOS'),
               ),
             ),
+
             const SizedBox(height: 12),
+
             InvoiceSummaryCard(
               totalItems: account.totalItems,
               subtotal: account.subtotal,
             ),
+
             const SizedBox(height: 12),
+
             SizedBox(
               width: double.infinity,
               height: 52,
               child: FilledButton.icon(
-                onPressed: account.items.isEmpty
-                    ? null
-                    : () async {
-                        final paymentCompleted = await Navigator.push<bool>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => PaymentScreen(account: account),
-                          ),
-                        );
-
-                        if (!context.mounted) {
-                          return;
-                        }
-
-                        if (paymentCompleted == true) {
-                          Navigator.pop(context, true);
-                          return;
-                        }
-
-                        setState(() {});
-                      },
+                onPressed: account.items.isEmpty ? null : _openPaymentScreen,
                 icon: const Icon(Icons.payments_outlined),
                 label: const Text('COBRAR'),
               ),
@@ -181,6 +197,41 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     );
   }
 
+  Future<void> _openProductPicker() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ProductPickerScreen(account: account)),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    await Services.tables.saveAccount(account);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
+  }
+
+  Future<void> _openPaymentScreen() async {
+    final paymentCompleted = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => PaymentScreen(account: account)),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (paymentCompleted == true) {
+      Navigator.of(context).pop(true);
+      return;
+    }
+
+    setState(() {});
+  }
+
   Future<bool> _confirmDeleteProduct(InvoiceItem item) async {
     final result = await showDialog<bool>(
       context: context,
@@ -188,7 +239,9 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         return AlertDialog(
           title: const Text('Eliminar producto'),
           content: Text(
-            '¿Deseas eliminar ${item.product.name} de esta cuenta?',
+            '¿Deseas eliminar '
+            '${item.product.name} '
+            'de esta cuenta?',
           ),
           actions: [
             TextButton(

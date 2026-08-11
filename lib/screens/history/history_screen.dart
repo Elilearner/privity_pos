@@ -24,9 +24,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String searchText = '';
 
   @override
+  void initState() {
+    super.initState();
+
+    Services.sales.addListener(_onSalesChanged);
+  }
+
+  @override
   void dispose() {
+    Services.sales.removeListener(_onSalesChanged);
+
     _searchController.dispose();
+
     super.dispose();
+  }
+
+  void _onSalesChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
   }
 
   @override
@@ -232,12 +250,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return SaleHistoryCard(
           sale: sale,
           onTap: () async {
-            await Navigator.push(
-              context,
+            await Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => SaleDetailScreen(sale: sale)),
             );
 
-            if (!context.mounted) {
+            if (!mounted) {
               return;
             }
 
