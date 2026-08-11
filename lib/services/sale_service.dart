@@ -135,25 +135,36 @@ class SaleService extends ChangeNotifier {
     return _findItem(account: account, productId: productId);
   }
 
-  Future<Sale?> closeTableSaleWithCash({
+  Future<Sale?> closeTableSale({
     required TableAccount account,
-    required double receivedAmount,
+    required List<Payment> payments,
   }) async {
     if (account.items.isEmpty) {
       return null;
     }
 
-    final total = account.subtotal;
-
-    if (receivedAmount < total) {
+    if (payments.isEmpty) {
       return null;
     }
 
-    final payment = Payment(
-      method: PaymentMethod.cash,
-      amount: total,
-      receivedAmount: receivedAmount,
+    final total = account.subtotal;
+
+    final amountPaid = payments.fold<double>(
+      0,
+      (sum, payment) => sum + payment.amount,
     );
+
+    const tolerance = 0.01;
+
+    if ((amountPaid - total).abs() > tolerance) {
+      return null;
+    }
+
+    for (final payment in payments) {
+      if (payment.amount <= 0) {
+        return null;
+      }
+    }
 
     final sale = Sale(
       id: _nextSaleId,
@@ -163,7 +174,7 @@ class SaleService extends ChangeNotifier {
       tableNumber: account.tableNumber,
       accountId: account.id,
       customerName: account.customerName,
-      payments: [payment],
+      payments: List<Payment>.from(payments),
       isClosed: true,
     );
 
@@ -191,6 +202,62 @@ class SaleService extends ChangeNotifier {
     notifyListeners();
 
     return sale;
+  }
+
+  Future<Sale?> closeTableSaleWithCash({
+    required TableAccount account,
+    required double receivedAmount,
+  }) async {
+    final total = account.subtotal;
+
+    if (receivedAmount < total) {
+      return null;
+    }
+
+    final payment = Payment(
+      method: PaymentMethod.cash,
+      amount: total,
+      receivedAmount: receivedAmount,
+    );
+
+    return closeTableSale(account: account, payments: [payment]);
+  }
+
+  Future<Sale?> closeTableSaleWithCard({
+    required TableAccount account,
+    String? reference,
+  }) async {
+    final payment = Payment(
+      method: PaymentMethod.card,
+      amount: account.subtotal,
+      reference: _cleanReference(reference),
+    );
+
+    return closeTableSale(account: account, payments: [payment]);
+  }
+
+  Future<Sale?> closeTableSaleWithTransfer({
+    required TableAccount account,
+    String? reference,
+  }) async {
+    final payment = Payment(
+      method: PaymentMethod.transfer,
+      amount: account.subtotal,
+      reference: _cleanReference(reference),
+    );
+
+    return closeTableSale(account: account, payments: [payment]);
+  }
+
+  Future<Sale?> closeTableSaleWithMixedPayments({
+    required TableAccount account,
+    required List<Payment> payments,
+  }) async {
+    if (payments.length < 2) {
+      return null;
+    }
+
+    return closeTableSale(account: account, payments: payments);
   }
 
   Sale? getSale(int saleId) {
@@ -222,5 +289,15 @@ class SaleService extends ChangeNotifier {
     }
 
     return null;
+  }
+
+  String? _cleanReference(String? reference) {
+    final value = reference?.trim();
+
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
+    return value;
   }
 }

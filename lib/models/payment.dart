@@ -8,17 +8,27 @@ class Payment {
     this.reference,
   });
 
+  /// Método utilizado para realizar el pago.
+  final PaymentMethod method;
+
   /// Monto realmente aplicado a la venta.
   final double amount;
 
   /// Monto entregado por el cliente.
-  /// Principalmente útil para pagos en efectivo.
+  ///
+  /// Se utiliza principalmente para pagos en efectivo
+  /// para poder calcular el cambio.
   final double? receivedAmount;
 
-  final PaymentMethod method;
-
+  /// Número o código de referencia del pago.
+  ///
+  /// Puede utilizarse para pagos con tarjeta
+  /// o transferencia.
   final String? reference;
 
+  /// Cambio que debe devolverse al cliente.
+  ///
+  /// Para tarjeta y transferencia normalmente será 0.
   double get change {
     final received = receivedAmount ?? amount;
 
