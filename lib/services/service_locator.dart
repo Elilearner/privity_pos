@@ -2,6 +2,7 @@ import 'cash_service.dart';
 import 'product_service.dart';
 import 'sale_service.dart';
 import 'table_service.dart';
+import 'printer_service.dart';
 
 class Services {
   Services._();
@@ -20,6 +21,10 @@ class Services {
 
   static CashService get cash {
     return CashService.instance;
+  }
+
+  static PrinterService get printer {
+    return PrinterService.instance;
   }
 
   static Future<void> initialize() async {

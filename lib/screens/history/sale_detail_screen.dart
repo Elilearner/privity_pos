@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
+import '../../core/business_config.dart';
 import '../../core/currency_formatter.dart';
 import '../../models/payment.dart';
 import '../../models/payment_method.dart';
 import '../../models/sale.dart';
+import '../../models/sale_type.dart';
+import '../../services/service_locator.dart';
 
 class SaleDetailScreen extends StatelessWidget {
   const SaleDetailScreen({super.key, required this.sale});
@@ -14,11 +17,33 @@ class SaleDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Venta #${sale.id}')),
+      appBar: AppBar(
+        title: Text('Venta #${sale.id}'),
+        actions: [
+          IconButton(
+            tooltip: 'Imprimir factura',
+            onPressed: () {
+              _printSale(context);
+            },
+            icon: const Icon(Icons.print_outlined),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(14),
         children: [
+          _buildBusinessHeader(),
+
+          const SizedBox(height: 14),
+
           _buildSaleHeader(),
+
+          if (sale.type == SaleType.delivery) ...[
+            const SizedBox(height: 20),
+            const _SectionTitle(title: 'DATOS DE ENTREGA'),
+            const SizedBox(height: 10),
+            _buildDeliveryCard(),
+          ],
 
           const SizedBox(height: 20),
 
@@ -43,6 +68,55 @@ class SaleDetailScreen extends StatelessWidget {
           const SizedBox(height: 10),
 
           _buildPaymentCard(),
+
+          const SizedBox(height: 18),
+
+          SizedBox(
+            height: 50,
+            child: FilledButton.icon(
+              onPressed: () {
+                _printSale(context);
+              },
+              icon: const Icon(Icons.print_outlined),
+              label: const Text('IMPRIMIR FACTURA'),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBusinessHeader() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.goldLight),
+      ),
+      child: const Column(
+        children: [
+          Text(
+            BusinessConfig.businessName,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.goldLight,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 5),
+          Text(
+            'DETALLE DE FACTURA',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -63,7 +137,7 @@ class SaleDetailScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Venta #${sale.id}',
+                  'Factura #${sale.id}',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 20,
@@ -77,14 +151,17 @@ class SaleDetailScreen extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          if (sale.tableNumber != null)
+          _InfoRow(icon: _saleTypeIcon, text: _saleTypeName),
+
+          if (sale.tableNumber != null) ...[
+            const SizedBox(height: 8),
             _InfoRow(
               icon: Icons.table_restaurant_outlined,
               text: 'Mesa ${sale.tableNumber}',
             ),
+          ],
 
-          if (sale.customerName != null &&
-              sale.customerName!.trim().isNotEmpty) ...[
+          if (_hasText(sale.customerName)) ...[
             const SizedBox(height: 8),
             _InfoRow(icon: Icons.person_outline, text: sale.customerName!),
           ],
@@ -92,6 +169,40 @@ class SaleDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
 
           _InfoRow(icon: Icons.schedule, text: _formatDateTime(sale.createdAt)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliveryCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          if (_hasText(sale.customerPhone))
+            _InfoRow(icon: Icons.phone_outlined, text: sale.customerPhone!),
+
+          if (_hasText(sale.customerPhone) && _hasText(sale.deliveryAddress))
+            const SizedBox(height: 10),
+
+          if (_hasText(sale.deliveryAddress))
+            _InfoRow(
+              icon: Icons.location_on_outlined,
+              text: sale.deliveryAddress!,
+            ),
+
+          if (_hasText(sale.deliveryReference)) ...[
+            const SizedBox(height: 10),
+            _InfoRow(
+              icon: Icons.place_outlined,
+              text: 'Referencia: ${sale.deliveryReference}',
+            ),
+          ],
         ],
       ),
     );
@@ -135,7 +246,9 @@ class SaleDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+
                   const SizedBox(width: 12),
+
                   Text(
                     CurrencyFormatter.format(sale.items[index].total),
                     style: const TextStyle(
@@ -155,6 +268,11 @@ class SaleDetailScreen extends StatelessWidget {
   }
 
   Widget _buildSummaryCard() {
+    final productCount = sale.items.fold<int>(
+      0,
+      (sum, item) => sum + item.quantity,
+    );
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -164,11 +282,7 @@ class SaleDetailScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _SummaryRow(
-            label: 'Productos',
-            value:
-                '${sale.items.fold<int>(0, (sum, item) => sum + item.quantity)}',
-          ),
+          _SummaryRow(label: 'Productos', value: '$productCount'),
 
           const SizedBox(height: 10),
 
@@ -230,14 +344,66 @@ class SaleDetailScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
+          if (sale.payments.length > 1) ...[
+            const _SummaryRow(
+              label: 'Tipo de pago',
+              value: 'PAGO MIXTO',
+              highlight: true,
+            ),
+            const Divider(height: 26),
+          ],
+
           for (int index = 0; index < sale.payments.length; index++) ...[
             _PaymentDetails(payment: sale.payments[index]),
 
             if (index < sale.payments.length - 1) const Divider(height: 26),
           ],
+
+          const Divider(height: 26),
+
+          _SummaryRow(
+            label: 'Total pagado',
+            value: CurrencyFormatter.format(sale.amountPaid),
+          ),
         ],
       ),
     );
+  }
+
+  IconData get _saleTypeIcon {
+    switch (sale.type) {
+      case SaleType.table:
+        return Icons.table_restaurant_outlined;
+
+      case SaleType.quickSale:
+        return Icons.point_of_sale_outlined;
+
+      case SaleType.takeaway:
+        return Icons.shopping_bag_outlined;
+
+      case SaleType.delivery:
+        return Icons.delivery_dining;
+    }
+  }
+
+  String get _saleTypeName {
+    switch (sale.type) {
+      case SaleType.table:
+        return 'Venta en mesa';
+
+      case SaleType.quickSale:
+        return 'Venta rápida';
+
+      case SaleType.takeaway:
+        return 'Para llevar';
+
+      case SaleType.delivery:
+        return 'Delivery';
+    }
+  }
+
+  bool _hasText(String? value) {
+    return value != null && value.trim().isNotEmpty;
   }
 
   String _formatDateTime(DateTime dateTime) {
@@ -261,6 +427,59 @@ class SaleDetailScreen extends StatelessWidget {
 
     return '$day/$month/$year · '
         '$hour:$minute $period';
+  }
+
+  Future<void> _printSale(BuildContext context) async {
+    if (!Services.printer.hasSelectedPrinter) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No hay una impresora configurada. '
+            'Ve a Ajustes para seleccionar una.',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Conectando con la impresora...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    final printed = await Services.printer.printSale(sale);
+
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    if (printed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Factura enviada correctamente '
+            'a la impresora.',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'No se pudo imprimir la factura. '
+          'Verifica que la impresora esté '
+          'encendida, emparejada y disponible.',
+        ),
+      ),
+    );
   }
 }
 
@@ -350,9 +569,12 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 18, color: AppColors.textSecondary),
+
         const SizedBox(width: 8),
+
         Expanded(
           child: Text(
             text,
@@ -391,14 +613,18 @@ class _SummaryRow extends StatelessWidget {
             ),
           ),
         ),
+
         const SizedBox(width: 12),
-        Text(
-          value,
-          textAlign: TextAlign.right,
-          style: TextStyle(
-            color: highlight ? AppColors.goldLight : AppColors.textPrimary,
-            fontSize: highlight ? 18 : 14,
-            fontWeight: FontWeight.bold,
+
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: highlight ? AppColors.goldLight : AppColors.textPrimary,
+              fontSize: highlight ? 18 : 14,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
