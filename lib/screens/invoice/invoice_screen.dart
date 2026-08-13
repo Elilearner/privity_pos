@@ -40,11 +40,14 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 6),
+
             Text(
               'Mesa ${account.tableNumber}',
               style: const TextStyle(color: AppColors.textSecondary),
             ),
+
             const SizedBox(height: 20),
 
             Expanded(
@@ -65,23 +68,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                         return InvoiceItemCard(
                           item: item,
                           onIncrease: () async {
-                            final changed = Services.sales
-                                .increaseProductQuantity(
-                                  account: account,
-                                  productId: item.product.id,
-                                );
-
-                            if (!changed) {
-                              return;
-                            }
-
-                            await Services.tables.saveAccount(account);
-
-                            if (!mounted) {
-                              return;
-                            }
-
-                            setState(() {});
+                            await _increaseItem(item);
                           },
                           onDecrease: () async {
                             if (item.quantity > 1) {
@@ -197,6 +184,57 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     );
   }
 
+  Future<void> _increaseItem(InvoiceItem item) async {
+    final currentProduct = Services.products.getProduct(item.product.id);
+
+    if (currentProduct == null) {
+      _showStockMessage(productName: item.product.name, availableStock: 0);
+      return;
+    }
+
+    if (!currentProduct.isActive) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${currentProduct.name} está inactivo.')),
+      );
+
+      return;
+    }
+
+    final availableForThisAccount = Services.products.getAvailableStock(
+      productId: currentProduct.id,
+      excludeAccountId: account.id,
+    );
+
+    final desiredQuantity = item.quantity + 1;
+
+    if (desiredQuantity > availableForThisAccount) {
+      _showStockMessage(
+        productName: currentProduct.name,
+        availableStock: availableForThisAccount,
+      );
+      return;
+    }
+
+    final changed = Services.sales.increaseProductQuantity(
+      account: account,
+      productId: item.product.id,
+    );
+
+    if (!changed) {
+      return;
+    }
+
+    await Services.tables.saveAccount(account);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
+  }
+
   Future<void> _openProductPicker() async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => ProductPickerScreen(account: account)),
@@ -230,6 +268,28 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     }
 
     setState(() {});
+  }
+
+  void _showStockMessage({
+    required String productName,
+    required int availableStock,
+  }) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          availableStock <= 0
+              ? 'Sin existencia disponible de $productName.'
+              : 'Stock insuficiente. '
+                    'Esta cuenta puede tener hasta '
+                    '$availableStock '
+                    'unidad${availableStock == 1 ? '' : 'es'} '
+                    'de $productName porque existen '
+                    'productos reservados en otras cuentas.',
+        ),
+      ),
+    );
   }
 
   Future<bool> _confirmDeleteProduct(InvoiceItem item) async {

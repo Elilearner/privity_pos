@@ -31,6 +31,7 @@ class TableService extends ChangeNotifier {
     }
 
     _database = db.AppDatabase();
+
     _repository = TableAccountRepository(_database);
 
     _tables.clear();
@@ -93,6 +94,69 @@ class TableService extends ChangeNotifier {
     }
 
     return List.unmodifiable(table.accounts);
+  }
+
+  List<TableAccount> get allOpenAccounts {
+    final result = <TableAccount>[];
+
+    for (final table in _tables) {
+      for (final account in table.accounts) {
+        if (!account.isClosed) {
+          result.add(account);
+        }
+      }
+    }
+
+    return List.unmodifiable(result);
+  }
+
+  int getReservedQuantity({required int productId, int? excludeAccountId}) {
+    var reservedQuantity = 0;
+
+    for (final table in _tables) {
+      for (final account in table.accounts) {
+        if (account.isClosed) {
+          continue;
+        }
+
+        if (excludeAccountId != null && account.id == excludeAccountId) {
+          continue;
+        }
+
+        for (final item in account.items) {
+          if (item.product.id == productId) {
+            reservedQuantity += item.quantity;
+          }
+        }
+      }
+    }
+
+    return reservedQuantity;
+  }
+
+  int getReservedQuantityForAccount({
+    required int productId,
+    required int accountId,
+  }) {
+    for (final table in _tables) {
+      for (final account in table.accounts) {
+        if (account.id != accountId || account.isClosed) {
+          continue;
+        }
+
+        var quantity = 0;
+
+        for (final item in account.items) {
+          if (item.product.id == productId) {
+            quantity += item.quantity;
+          }
+        }
+
+        return quantity;
+      }
+    }
+
+    return 0;
   }
 
   Future<TableAccount?> openAccount({

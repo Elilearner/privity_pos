@@ -77,21 +77,98 @@ class _ProductPickerScreenState extends State<ProductPickerScreen> {
   }
 
   Future<void> _addProduct(Product product) async {
+    final currentProduct = Services.products.getProduct(product.id);
+
+    if (currentProduct == null) {
+      _showStockMessage(productName: product.name, availableStock: 0);
+      return;
+    }
+
+    if (!currentProduct.isActive) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${currentProduct.name} está inactivo.')),
+      );
+
+      return;
+    }
+
+    final existingItem = Services.sales.getItem(
+      account: widget.account,
+      productId: currentProduct.id,
+    );
+
+    final currentQuantity = existingItem?.quantity ?? 0;
+
+    final availableForThisAccount = Services.products.getAvailableStock(
+      productId: currentProduct.id,
+      excludeAccountId: widget.account.id,
+    );
+
+    final desiredQuantity = currentQuantity + 1;
+
+    if (desiredQuantity > availableForThisAccount) {
+      _showStockMessage(
+        productName: currentProduct.name,
+        availableStock: availableForThisAccount,
+      );
+      return;
+    }
+
     setState(() {
       _savingProduct = true;
     });
 
-    Services.sales.addProductToAccount(
-      account: widget.account,
-      product: product,
-    );
+    try {
+      Services.sales.addProductToAccount(
+        account: widget.account,
+        product: currentProduct,
+      );
 
-    await Services.tables.saveAccount(widget.account);
+      await Services.tables.saveAccount(widget.account);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _savingProduct = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo agregar el producto.')),
+      );
+
+      return;
+    }
 
     if (!mounted) {
       return;
     }
 
     Navigator.of(context).pop();
+  }
+
+  void _showStockMessage({
+    required String productName,
+    required int availableStock,
+  }) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          availableStock <= 0
+              ? 'Sin existencia disponible de $productName.'
+              : 'Stock insuficiente. '
+                    'Esta cuenta puede tener hasta '
+                    '$availableStock '
+                    'unidad${availableStock == 1 ? '' : 'es'} '
+                    'de $productName porque existen '
+                    'productos reservados en otras cuentas.',
+        ),
+      ),
+    );
   }
 }

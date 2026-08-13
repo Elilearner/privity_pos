@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../core/currency_formatter.dart';
 import '../../models/invoice_item.dart';
+import '../../models/product.dart';
 import '../../models/sale_draft.dart';
 import '../../models/sale_type.dart';
 import '../../services/service_locator.dart';
@@ -100,15 +101,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                     price: product.salePrice,
                     imagePath: product.imagePath,
                     onTap: () {
-                      final existingItem = _draft.findItem(product.id);
-
-                      if (existingItem != null) {
-                        existingItem.increase();
-                      } else {
-                        _draft.addItem(InvoiceItem(product: product));
-                      }
-
-                      setState(() {});
+                      _addProduct(product);
                     },
                   );
                 },
@@ -149,9 +142,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                   return InvoiceItemCard(
                     item: item,
                     onIncrease: () {
-                      item.increase();
-
-                      setState(() {});
+                      _increaseItem(item);
                     },
                     onDecrease: () {
                       if (item.quantity > 1) {
@@ -188,6 +179,109 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
 
             const SizedBox(height: 20),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _addProduct(Product product) {
+    final currentProduct = Services.products.getProduct(product.id);
+
+    if (currentProduct == null) {
+      _showStockMessage(productName: product.name, availableStock: 0);
+      return;
+    }
+
+    if (!currentProduct.isActive) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${currentProduct.name} está inactivo.')),
+      );
+
+      return;
+    }
+
+    final availableStock = Services.products.getAvailableStock(
+      productId: currentProduct.id,
+    );
+
+    final existingItem = _draft.findItem(currentProduct.id);
+
+    final currentQuantity = existingItem?.quantity ?? 0;
+
+    final desiredQuantity = currentQuantity + 1;
+
+    if (desiredQuantity > availableStock) {
+      _showStockMessage(
+        productName: currentProduct.name,
+        availableStock: availableStock,
+      );
+      return;
+    }
+
+    if (existingItem != null) {
+      existingItem.increase();
+    } else {
+      _draft.addItem(InvoiceItem(product: currentProduct));
+    }
+
+    setState(() {});
+  }
+
+  void _increaseItem(InvoiceItem item) {
+    final currentProduct = Services.products.getProduct(item.product.id);
+
+    if (currentProduct == null) {
+      _showStockMessage(productName: item.product.name, availableStock: 0);
+      return;
+    }
+
+    if (!currentProduct.isActive) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${currentProduct.name} está inactivo.')),
+      );
+
+      return;
+    }
+
+    final availableStock = Services.products.getAvailableStock(
+      productId: currentProduct.id,
+    );
+
+    final desiredQuantity = item.quantity + 1;
+
+    if (desiredQuantity > availableStock) {
+      _showStockMessage(
+        productName: currentProduct.name,
+        availableStock: availableStock,
+      );
+      return;
+    }
+
+    item.increase();
+
+    setState(() {});
+  }
+
+  void _showStockMessage({
+    required String productName,
+    required int availableStock,
+  }) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          availableStock <= 0
+              ? 'Sin existencia disponible de $productName.'
+              : 'Stock insuficiente. '
+                    'Solo hay $availableStock '
+                    'unidad${availableStock == 1 ? '' : 'es'} '
+                    'disponible${availableStock == 1 ? '' : 's'} '
+                    'de $productName.',
         ),
       ),
     );
@@ -306,6 +400,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
 
           if (_draft.tax > 0) ...[
             const SizedBox(height: 10),
+
             _DeliveryTotalRow(
               label: 'Impuestos',
               value: CurrencyFormatter.format(_draft.tax),
@@ -339,28 +434,22 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
 
     if (customerName.isEmpty) {
       _showValidationMessage('Ingresa el nombre del cliente.');
-
       return;
     }
 
     if (phone.isEmpty) {
       _showValidationMessage('Ingresa el teléfono del cliente.');
-
       return;
     }
 
     if (address.isEmpty) {
       _showValidationMessage('Ingresa la dirección de entrega.');
-
       return;
     }
 
     _draft.customerName = customerName;
-
     _draft.customerPhone = phone;
-
     _draft.deliveryAddress = address;
-
     _draft.deliveryReference = reference.isEmpty ? null : reference;
 
     final paymentCompleted = await Navigator.of(context).push<bool>(
@@ -393,6 +482,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
 
     setState(() {
       _searchQuery = '';
+
       _draft.customerName = null;
       _draft.customerPhone = null;
       _draft.deliveryAddress = null;
@@ -434,7 +524,6 @@ class _DeliveryTotalRow extends StatelessWidget {
 
   final String label;
   final String value;
-
   final bool highlighted;
 
   @override
@@ -453,6 +542,7 @@ class _DeliveryTotalRow extends StatelessWidget {
             ),
           ),
         ),
+
         Text(
           value,
           style: TextStyle(

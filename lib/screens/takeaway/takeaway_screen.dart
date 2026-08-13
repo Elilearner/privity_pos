@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
 import '../../models/invoice_item.dart';
+import '../../models/product.dart';
 import '../../models/sale_draft.dart';
 import '../../models/sale_type.dart';
 import '../../services/service_locator.dart';
@@ -64,15 +65,7 @@ class _TakeawayScreenState extends State<TakeawayScreen> {
                     price: product.salePrice,
                     imagePath: product.imagePath,
                     onTap: () {
-                      final existingItem = _draft.findItem(product.id);
-
-                      if (existingItem != null) {
-                        existingItem.increase();
-                      } else {
-                        _draft.addItem(InvoiceItem(product: product));
-                      }
-
-                      setState(() {});
+                      _addProduct(product);
                     },
                   );
                 },
@@ -100,9 +93,7 @@ class _TakeawayScreenState extends State<TakeawayScreen> {
                         return InvoiceItemCard(
                           item: item,
                           onIncrease: () {
-                            item.increase();
-
-                            setState(() {});
+                            _increaseItem(item);
                           },
                           onDecrease: () {
                             if (item.quantity > 1) {
@@ -142,6 +133,109 @@ class _TakeawayScreenState extends State<TakeawayScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _addProduct(Product product) {
+    final currentProduct = Services.products.getProduct(product.id);
+
+    if (currentProduct == null) {
+      _showStockMessage(productName: product.name, availableStock: 0);
+      return;
+    }
+
+    if (!currentProduct.isActive) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${currentProduct.name} está inactivo.')),
+      );
+
+      return;
+    }
+
+    final availableStock = Services.products.getAvailableStock(
+      productId: currentProduct.id,
+    );
+
+    final existingItem = _draft.findItem(currentProduct.id);
+
+    final currentQuantity = existingItem?.quantity ?? 0;
+
+    final desiredQuantity = currentQuantity + 1;
+
+    if (desiredQuantity > availableStock) {
+      _showStockMessage(
+        productName: currentProduct.name,
+        availableStock: availableStock,
+      );
+      return;
+    }
+
+    if (existingItem != null) {
+      existingItem.increase();
+    } else {
+      _draft.addItem(InvoiceItem(product: currentProduct));
+    }
+
+    setState(() {});
+  }
+
+  void _increaseItem(InvoiceItem item) {
+    final currentProduct = Services.products.getProduct(item.product.id);
+
+    if (currentProduct == null) {
+      _showStockMessage(productName: item.product.name, availableStock: 0);
+      return;
+    }
+
+    if (!currentProduct.isActive) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${currentProduct.name} está inactivo.')),
+      );
+
+      return;
+    }
+
+    final availableStock = Services.products.getAvailableStock(
+      productId: currentProduct.id,
+    );
+
+    final desiredQuantity = item.quantity + 1;
+
+    if (desiredQuantity > availableStock) {
+      _showStockMessage(
+        productName: currentProduct.name,
+        availableStock: availableStock,
+      );
+      return;
+    }
+
+    item.increase();
+
+    setState(() {});
+  }
+
+  void _showStockMessage({
+    required String productName,
+    required int availableStock,
+  }) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          availableStock <= 0
+              ? 'Sin existencia disponible de $productName.'
+              : 'Stock insuficiente. '
+                    'Solo hay $availableStock '
+                    'unidad${availableStock == 1 ? '' : 'es'} '
+                    'disponible${availableStock == 1 ? '' : 's'} '
+                    'de $productName.',
         ),
       ),
     );

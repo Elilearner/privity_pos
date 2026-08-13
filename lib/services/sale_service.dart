@@ -10,6 +10,7 @@ import '../models/sale.dart';
 import '../models/sale_draft.dart';
 import '../models/sale_type.dart';
 import '../models/table_account.dart';
+import 'product_service.dart';
 import 'table_service.dart';
 
 class SaleService extends ChangeNotifier {
@@ -156,6 +157,16 @@ class SaleService extends ChangeNotifier {
       return null;
     }
 
+    // La cuenta que estamos cobrando ya tiene
+    // esos productos reservados para ella.
+    // Por eso se excluye del cálculo de reservas.
+    if (!ProductService.instance.hasEnoughStock(
+      account.items,
+      excludeAccountId: account.id,
+    )) {
+      return null;
+    }
+
     final sale = Sale(
       id: _nextSaleId,
       type: SaleType.table,
@@ -180,6 +191,16 @@ class SaleService extends ChangeNotifier {
     );
 
     if (!accountClosed) {
+      await _repository.deleteSale(sale.id);
+
+      return null;
+    }
+
+    final stockUpdated = await ProductService.instance.decreaseStock(
+      sale.items,
+    );
+
+    if (!stockUpdated) {
       await _repository.deleteSale(sale.id);
 
       return null;
@@ -266,6 +287,13 @@ class SaleService extends ChangeNotifier {
       return null;
     }
 
+    // En este caso no se excluye ninguna cuenta,
+    // porque venta rápida, para llevar y delivery
+    // no pertenecen a una cuenta de mesa.
+    if (!ProductService.instance.hasEnoughStock(draft.items)) {
+      return null;
+    }
+
     final sale = Sale(
       id: _nextSaleId,
       type: draft.type,
@@ -284,6 +312,16 @@ class SaleService extends ChangeNotifier {
     try {
       await _repository.saveSale(sale);
     } catch (_) {
+      return null;
+    }
+
+    final stockUpdated = await ProductService.instance.decreaseStock(
+      sale.items,
+    );
+
+    if (!stockUpdated) {
+      await _repository.deleteSale(sale.id);
+
       return null;
     }
 

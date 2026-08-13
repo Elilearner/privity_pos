@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
+import '../../core/currency_formatter.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({
@@ -34,19 +37,10 @@ class ProductCard extends StatelessWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Image.asset(
-                    imagePath,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.local_bar,
-                        size: 48,
-                        color: AppColors.gold,
-                      );
-                    },
-                  ),
+                  child: _buildProductImage(),
                 ),
               ),
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Text(
@@ -61,20 +55,59 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 4),
+
               Text(
-                '\$${price.toStringAsFixed(0)}',
+                CurrencyFormatter.format(price),
                 style: const TextStyle(
                   color: AppColors.goldLight,
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
               const SizedBox(height: 8),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildProductImage() {
+    final cleanPath = imagePath.trim();
+
+    if (cleanPath.isEmpty) {
+      return const Center(
+        child: Icon(Icons.local_bar, size: 48, color: AppColors.gold),
+      );
+    }
+
+    if (_isAssetPath(cleanPath)) {
+      return Image.asset(
+        cleanPath,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Center(
+            child: Icon(Icons.local_bar, size: 48, color: AppColors.gold),
+          );
+        },
+      );
+    }
+
+    return Image.file(
+      File(cleanPath),
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return const Center(
+          child: Icon(Icons.local_bar, size: 48, color: AppColors.gold),
+        );
+      },
+    );
+  }
+
+  bool _isAssetPath(String path) {
+    return path.startsWith('assets/');
   }
 }

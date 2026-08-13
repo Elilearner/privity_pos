@@ -4,6 +4,7 @@ import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import '../../core/app_colors.dart';
 import '../../services/printer_service.dart';
 import '../../services/service_locator.dart';
+import '../product_management/product_management_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -47,6 +48,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
 
         const SizedBox(height: 20),
+
+        const _SettingsSectionTitle(title: 'PRODUCTOS E INVENTARIO'),
+
+        const SizedBox(height: 10),
+
+        _buildProductManagementCard(),
+
+        const SizedBox(height: 24),
 
         const _SettingsSectionTitle(title: 'IMPRESORA'),
 
@@ -125,6 +134,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Widget _buildProductManagementCard() {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () async {
+          await Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ProductManagementScreen()),
+          );
+
+          if (!mounted) {
+            return;
+          }
+
+          setState(() {});
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: const Row(
+            children: [
+              Icon(
+                Icons.inventory_2_outlined,
+                color: AppColors.goldLight,
+                size: 34,
+              ),
+
+              SizedBox(width: 14),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Administrar productos',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(height: 5),
+
+                    Text(
+                      'Productos, precios, inventario y categorías',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

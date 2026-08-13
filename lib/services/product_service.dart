@@ -1,6 +1,8 @@
 import '../data/database/app_database.dart' as db;
 import '../data/repositories/product_repository.dart';
+import '../models/invoice_item.dart';
 import '../models/product.dart' as domain;
+import 'table_service.dart';
 
 class ProductService {
   ProductService._();
@@ -98,6 +100,137 @@ class ProductService {
 
     return true;
   }
+
+  // =========================================================
+  // INVENTARIO DISPONIBLE
+  // =========================================================
+
+  int getAvailableStock({required int productId, int? excludeAccountId}) {
+    final product = getProduct(productId);
+
+    if (product == null) {
+      return 0;
+    }
+
+    final reserved = TableService.instance.getReservedQuantity(
+      productId: productId,
+      excludeAccountId: excludeAccountId,
+    );
+
+    final available = product.stock - reserved;
+
+    if (available < 0) {
+      return 0;
+    }
+
+    return available;
+  }
+
+  bool canAddQuantity({
+    required int productId,
+    required int desiredQuantity,
+    int? excludeAccountId,
+  }) {
+    if (desiredQuantity <= 0) {
+      return false;
+    }
+
+    final product = getProduct(productId);
+
+    if (product == null || !product.isActive) {
+      return false;
+    }
+
+    final available = getAvailableStock(
+      productId: productId,
+      excludeAccountId: excludeAccountId,
+    );
+
+    return desiredQuantity <= available;
+  }
+
+  bool hasEnoughStock(List<InvoiceItem> items, {int? excludeAccountId}) {
+    for (final item in items) {
+      final currentProduct = getProduct(item.product.id);
+
+      if (currentProduct == null) {
+        return false;
+      }
+
+      if (!currentProduct.isActive) {
+        return false;
+      }
+
+      final available = getAvailableStock(
+        productId: currentProduct.id,
+        excludeAccountId: excludeAccountId,
+      );
+
+      if (item.quantity > available) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // =========================================================
+  // DESCUENTO DEFINITIVO DE INVENTARIO
+  // =========================================================
+
+  Future<bool> decreaseStock(List<InvoiceItem> items) async {
+    for (final item in items) {
+      final currentProduct = getProduct(item.product.id);
+
+      if (currentProduct == null) {
+        return false;
+      }
+
+      if (currentProduct.stock < item.quantity) {
+        return false;
+      }
+    }
+
+    final updatedProducts = <domain.Product>[];
+
+    for (final item in items) {
+      final currentProduct = getProduct(item.product.id);
+
+      if (currentProduct == null) {
+        return false;
+      }
+
+      final updatedProduct = domain.Product(
+        id: currentProduct.id,
+        name: currentProduct.name,
+        salePrice: currentProduct.salePrice,
+        purchasePrice: currentProduct.purchasePrice,
+        imagePath: currentProduct.imagePath,
+        category: currentProduct.category,
+        stock: currentProduct.stock - item.quantity,
+        isActive: currentProduct.isActive,
+        description: currentProduct.description,
+        barcode: currentProduct.barcode,
+        favorite: currentProduct.favorite,
+      );
+
+      updatedProducts.add(updatedProduct);
+    }
+
+    try {
+      for (final product in updatedProducts) {
+        await saveProduct(product);
+      }
+    } catch (_) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // =========================================================
+  // PRODUCTOS INICIALES
+  // =========================================================
 
   List<domain.Product> get _initialProducts {
     return const [
