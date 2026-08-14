@@ -16,6 +16,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _searchingPrinters = false;
   bool _printingTest = false;
+  bool _savingModule = false;
 
   PrinterPaperSize get _paperSize {
     return Services.printer.paperSize;
@@ -48,6 +49,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
 
         const SizedBox(height: 20),
+
+        const _SettingsSectionTitle(title: 'MÓDULOS DEL NEGOCIO'),
+
+        const SizedBox(height: 10),
+
+        _buildBusinessModulesCard(),
+
+        const SizedBox(height: 8),
+
+        const Text(
+          'Activa únicamente las formas de venta que utiliza el negocio.',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+        ),
+
+        const SizedBox(height: 24),
 
         const _SettingsSectionTitle(title: 'PRODUCTOS E INVENTARIO'),
 
@@ -135,6 +151,114 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 24),
       ],
     );
+  }
+
+  Widget _buildBusinessModulesCard() {
+    final settings = Services.settings;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          _ModuleSwitchTile(
+            icon: Icons.table_restaurant_outlined,
+            title: 'Mesas',
+            subtitle: 'Ventas y cuentas abiertas por mesa',
+            value: settings.enableTableSales,
+            enabled: !_savingModule,
+            onChanged: (value) {
+              _updateModule(() => settings.setTableSalesEnabled(value));
+            },
+          ),
+
+          const Divider(height: 1),
+
+          _ModuleSwitchTile(
+            icon: Icons.local_bar_outlined,
+            title: 'Barra',
+            subtitle: 'Cuentas abiertas para clientes en barra',
+            value: settings.enableBarSales,
+            enabled: !_savingModule,
+            onChanged: (value) {
+              _updateModule(() => settings.setBarSalesEnabled(value));
+            },
+          ),
+
+          const Divider(height: 1),
+
+          _ModuleSwitchTile(
+            icon: Icons.point_of_sale_outlined,
+            title: 'Venta rápida',
+            subtitle: 'Ventas cobradas inmediatamente',
+            value: settings.enableQuickSale,
+            enabled: !_savingModule,
+            onChanged: (value) {
+              _updateModule(() => settings.setQuickSaleEnabled(value));
+            },
+          ),
+
+          const Divider(height: 1),
+
+          _ModuleSwitchTile(
+            icon: Icons.shopping_bag_outlined,
+            title: 'Para llevar',
+            subtitle: 'Pedidos para recoger o llevar',
+            value: settings.enableTakeaway,
+            enabled: !_savingModule,
+            onChanged: (value) {
+              _updateModule(() => settings.setTakeawayEnabled(value));
+            },
+          ),
+
+          const Divider(height: 1),
+
+          _ModuleSwitchTile(
+            icon: Icons.delivery_dining_outlined,
+            title: 'Delivery',
+            subtitle: 'Pedidos con entrega a domicilio',
+            value: settings.enableDelivery,
+            enabled: !_savingModule,
+            onChanged: (value) {
+              _updateModule(() => settings.setDeliveryEnabled(value));
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateModule(Future<void> Function() update) async {
+    if (_savingModule) {
+      return;
+    }
+
+    setState(() {
+      _savingModule = true;
+    });
+
+    try {
+      await update();
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo guardar la configuración del módulo.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _savingModule = false;
+        });
+      }
+    }
   }
 
   Widget _buildProductManagementCard() {
@@ -506,6 +630,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Impresora eliminada de la configuración.')),
+    );
+  }
+}
+
+class _ModuleSwitchTile extends StatelessWidget {
+  const _ModuleSwitchTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      value: value,
+      onChanged: enabled ? onChanged : null,
+      activeThumbColor: AppColors.goldLight,
+      secondary: Icon(
+        icon,
+        color: value ? AppColors.goldLight : AppColors.textSecondary,
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+      ),
     );
   }
 }

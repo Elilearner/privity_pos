@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/business_config.dart';
+import '../../services/service_locator.dart';
 import '../../widgets/navigation/main_navigation.dart';
 import '../cash/cash_screen.dart';
 import '../delivery/delivery_screen.dart';
@@ -20,16 +21,40 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+
+    Services.settings.addListener(_handleSettingsChanged);
+  }
+
+  @override
+  void dispose() {
+    Services.settings.removeListener(_handleSettingsChanged);
+
+    super.dispose();
+  }
+
+  void _handleSettingsChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
+  }
+
   List<_HomeNavigationItem> get navigationItems {
     final items = <_HomeNavigationItem>[];
 
-    if (BusinessConfig.enableTableSales) {
+    final settings = Services.settings;
+
+    if (settings.enableTableSales) {
       items.add(
         const _HomeNavigationItem(title: 'Mesas', page: TablesScreen()),
       );
     }
 
-    if (BusinessConfig.enableQuickSale) {
+    if (settings.enableQuickSale) {
       items.add(
         const _HomeNavigationItem(
           title: 'Venta rápida',
@@ -38,13 +63,13 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (BusinessConfig.enableTakeaway) {
+    if (settings.enableTakeaway) {
       items.add(
         const _HomeNavigationItem(title: 'Para llevar', page: TakeawayScreen()),
       );
     }
 
-    if (BusinessConfig.enableDelivery) {
+    if (settings.enableDelivery) {
       items.add(
         const _HomeNavigationItem(title: 'Delivery', page: DeliveryScreen()),
       );

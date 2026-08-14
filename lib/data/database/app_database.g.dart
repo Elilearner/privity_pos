@@ -3674,6 +3674,439 @@ class CashSessionsCompanion extends UpdateCompanion<CashSession> {
   }
 }
 
+class $BusinessSettingsTable extends BusinessSettings
+    with TableInfo<$BusinessSettingsTable, BusinessSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BusinessSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _enableTableSalesMeta = const VerificationMeta(
+    'enableTableSales',
+  );
+  @override
+  late final GeneratedColumn<bool> enableTableSales = GeneratedColumn<bool>(
+    'enable_table_sales',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enable_table_sales" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _enableBarSalesMeta = const VerificationMeta(
+    'enableBarSales',
+  );
+  @override
+  late final GeneratedColumn<bool> enableBarSales = GeneratedColumn<bool>(
+    'enable_bar_sales',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enable_bar_sales" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _enableQuickSaleMeta = const VerificationMeta(
+    'enableQuickSale',
+  );
+  @override
+  late final GeneratedColumn<bool> enableQuickSale = GeneratedColumn<bool>(
+    'enable_quick_sale',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enable_quick_sale" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _enableTakeawayMeta = const VerificationMeta(
+    'enableTakeaway',
+  );
+  @override
+  late final GeneratedColumn<bool> enableTakeaway = GeneratedColumn<bool>(
+    'enable_takeaway',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enable_takeaway" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _enableDeliveryMeta = const VerificationMeta(
+    'enableDelivery',
+  );
+  @override
+  late final GeneratedColumn<bool> enableDelivery = GeneratedColumn<bool>(
+    'enable_delivery',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enable_delivery" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    enableTableSales,
+    enableBarSales,
+    enableQuickSale,
+    enableTakeaway,
+    enableDelivery,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'business_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BusinessSetting> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('enable_table_sales')) {
+      context.handle(
+        _enableTableSalesMeta,
+        enableTableSales.isAcceptableOrUnknown(
+          data['enable_table_sales']!,
+          _enableTableSalesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('enable_bar_sales')) {
+      context.handle(
+        _enableBarSalesMeta,
+        enableBarSales.isAcceptableOrUnknown(
+          data['enable_bar_sales']!,
+          _enableBarSalesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('enable_quick_sale')) {
+      context.handle(
+        _enableQuickSaleMeta,
+        enableQuickSale.isAcceptableOrUnknown(
+          data['enable_quick_sale']!,
+          _enableQuickSaleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('enable_takeaway')) {
+      context.handle(
+        _enableTakeawayMeta,
+        enableTakeaway.isAcceptableOrUnknown(
+          data['enable_takeaway']!,
+          _enableTakeawayMeta,
+        ),
+      );
+    }
+    if (data.containsKey('enable_delivery')) {
+      context.handle(
+        _enableDeliveryMeta,
+        enableDelivery.isAcceptableOrUnknown(
+          data['enable_delivery']!,
+          _enableDeliveryMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BusinessSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BusinessSetting(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      enableTableSales: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enable_table_sales'],
+      )!,
+      enableBarSales: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enable_bar_sales'],
+      )!,
+      enableQuickSale: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enable_quick_sale'],
+      )!,
+      enableTakeaway: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enable_takeaway'],
+      )!,
+      enableDelivery: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enable_delivery'],
+      )!,
+    );
+  }
+
+  @override
+  $BusinessSettingsTable createAlias(String alias) {
+    return $BusinessSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
+  final int id;
+  final bool enableTableSales;
+  final bool enableBarSales;
+  final bool enableQuickSale;
+  final bool enableTakeaway;
+  final bool enableDelivery;
+  const BusinessSetting({
+    required this.id,
+    required this.enableTableSales,
+    required this.enableBarSales,
+    required this.enableQuickSale,
+    required this.enableTakeaway,
+    required this.enableDelivery,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['enable_table_sales'] = Variable<bool>(enableTableSales);
+    map['enable_bar_sales'] = Variable<bool>(enableBarSales);
+    map['enable_quick_sale'] = Variable<bool>(enableQuickSale);
+    map['enable_takeaway'] = Variable<bool>(enableTakeaway);
+    map['enable_delivery'] = Variable<bool>(enableDelivery);
+    return map;
+  }
+
+  BusinessSettingsCompanion toCompanion(bool nullToAbsent) {
+    return BusinessSettingsCompanion(
+      id: Value(id),
+      enableTableSales: Value(enableTableSales),
+      enableBarSales: Value(enableBarSales),
+      enableQuickSale: Value(enableQuickSale),
+      enableTakeaway: Value(enableTakeaway),
+      enableDelivery: Value(enableDelivery),
+    );
+  }
+
+  factory BusinessSetting.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BusinessSetting(
+      id: serializer.fromJson<int>(json['id']),
+      enableTableSales: serializer.fromJson<bool>(json['enableTableSales']),
+      enableBarSales: serializer.fromJson<bool>(json['enableBarSales']),
+      enableQuickSale: serializer.fromJson<bool>(json['enableQuickSale']),
+      enableTakeaway: serializer.fromJson<bool>(json['enableTakeaway']),
+      enableDelivery: serializer.fromJson<bool>(json['enableDelivery']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'enableTableSales': serializer.toJson<bool>(enableTableSales),
+      'enableBarSales': serializer.toJson<bool>(enableBarSales),
+      'enableQuickSale': serializer.toJson<bool>(enableQuickSale),
+      'enableTakeaway': serializer.toJson<bool>(enableTakeaway),
+      'enableDelivery': serializer.toJson<bool>(enableDelivery),
+    };
+  }
+
+  BusinessSetting copyWith({
+    int? id,
+    bool? enableTableSales,
+    bool? enableBarSales,
+    bool? enableQuickSale,
+    bool? enableTakeaway,
+    bool? enableDelivery,
+  }) => BusinessSetting(
+    id: id ?? this.id,
+    enableTableSales: enableTableSales ?? this.enableTableSales,
+    enableBarSales: enableBarSales ?? this.enableBarSales,
+    enableQuickSale: enableQuickSale ?? this.enableQuickSale,
+    enableTakeaway: enableTakeaway ?? this.enableTakeaway,
+    enableDelivery: enableDelivery ?? this.enableDelivery,
+  );
+  BusinessSetting copyWithCompanion(BusinessSettingsCompanion data) {
+    return BusinessSetting(
+      id: data.id.present ? data.id.value : this.id,
+      enableTableSales: data.enableTableSales.present
+          ? data.enableTableSales.value
+          : this.enableTableSales,
+      enableBarSales: data.enableBarSales.present
+          ? data.enableBarSales.value
+          : this.enableBarSales,
+      enableQuickSale: data.enableQuickSale.present
+          ? data.enableQuickSale.value
+          : this.enableQuickSale,
+      enableTakeaway: data.enableTakeaway.present
+          ? data.enableTakeaway.value
+          : this.enableTakeaway,
+      enableDelivery: data.enableDelivery.present
+          ? data.enableDelivery.value
+          : this.enableDelivery,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BusinessSetting(')
+          ..write('id: $id, ')
+          ..write('enableTableSales: $enableTableSales, ')
+          ..write('enableBarSales: $enableBarSales, ')
+          ..write('enableQuickSale: $enableQuickSale, ')
+          ..write('enableTakeaway: $enableTakeaway, ')
+          ..write('enableDelivery: $enableDelivery')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    enableTableSales,
+    enableBarSales,
+    enableQuickSale,
+    enableTakeaway,
+    enableDelivery,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BusinessSetting &&
+          other.id == this.id &&
+          other.enableTableSales == this.enableTableSales &&
+          other.enableBarSales == this.enableBarSales &&
+          other.enableQuickSale == this.enableQuickSale &&
+          other.enableTakeaway == this.enableTakeaway &&
+          other.enableDelivery == this.enableDelivery);
+}
+
+class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
+  final Value<int> id;
+  final Value<bool> enableTableSales;
+  final Value<bool> enableBarSales;
+  final Value<bool> enableQuickSale;
+  final Value<bool> enableTakeaway;
+  final Value<bool> enableDelivery;
+  const BusinessSettingsCompanion({
+    this.id = const Value.absent(),
+    this.enableTableSales = const Value.absent(),
+    this.enableBarSales = const Value.absent(),
+    this.enableQuickSale = const Value.absent(),
+    this.enableTakeaway = const Value.absent(),
+    this.enableDelivery = const Value.absent(),
+  });
+  BusinessSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.enableTableSales = const Value.absent(),
+    this.enableBarSales = const Value.absent(),
+    this.enableQuickSale = const Value.absent(),
+    this.enableTakeaway = const Value.absent(),
+    this.enableDelivery = const Value.absent(),
+  });
+  static Insertable<BusinessSetting> custom({
+    Expression<int>? id,
+    Expression<bool>? enableTableSales,
+    Expression<bool>? enableBarSales,
+    Expression<bool>? enableQuickSale,
+    Expression<bool>? enableTakeaway,
+    Expression<bool>? enableDelivery,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (enableTableSales != null) 'enable_table_sales': enableTableSales,
+      if (enableBarSales != null) 'enable_bar_sales': enableBarSales,
+      if (enableQuickSale != null) 'enable_quick_sale': enableQuickSale,
+      if (enableTakeaway != null) 'enable_takeaway': enableTakeaway,
+      if (enableDelivery != null) 'enable_delivery': enableDelivery,
+    });
+  }
+
+  BusinessSettingsCompanion copyWith({
+    Value<int>? id,
+    Value<bool>? enableTableSales,
+    Value<bool>? enableBarSales,
+    Value<bool>? enableQuickSale,
+    Value<bool>? enableTakeaway,
+    Value<bool>? enableDelivery,
+  }) {
+    return BusinessSettingsCompanion(
+      id: id ?? this.id,
+      enableTableSales: enableTableSales ?? this.enableTableSales,
+      enableBarSales: enableBarSales ?? this.enableBarSales,
+      enableQuickSale: enableQuickSale ?? this.enableQuickSale,
+      enableTakeaway: enableTakeaway ?? this.enableTakeaway,
+      enableDelivery: enableDelivery ?? this.enableDelivery,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (enableTableSales.present) {
+      map['enable_table_sales'] = Variable<bool>(enableTableSales.value);
+    }
+    if (enableBarSales.present) {
+      map['enable_bar_sales'] = Variable<bool>(enableBarSales.value);
+    }
+    if (enableQuickSale.present) {
+      map['enable_quick_sale'] = Variable<bool>(enableQuickSale.value);
+    }
+    if (enableTakeaway.present) {
+      map['enable_takeaway'] = Variable<bool>(enableTakeaway.value);
+    }
+    if (enableDelivery.present) {
+      map['enable_delivery'] = Variable<bool>(enableDelivery.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BusinessSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('enableTableSales: $enableTableSales, ')
+          ..write('enableBarSales: $enableBarSales, ')
+          ..write('enableQuickSale: $enableQuickSale, ')
+          ..write('enableTakeaway: $enableTakeaway, ')
+          ..write('enableDelivery: $enableDelivery')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3684,6 +4117,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TableAccountsTable tableAccounts = $TableAccountsTable(this);
   late final $AccountItemsTable accountItems = $AccountItemsTable(this);
   late final $CashSessionsTable cashSessions = $CashSessionsTable(this);
+  late final $BusinessSettingsTable businessSettings = $BusinessSettingsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3696,6 +4132,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     tableAccounts,
     accountItems,
     cashSessions,
+    businessSettings,
   ];
 }
 
@@ -5507,6 +5944,235 @@ typedef $$CashSessionsTableProcessedTableManager =
       CashSession,
       PrefetchHooks Function()
     >;
+typedef $$BusinessSettingsTableCreateCompanionBuilder =
+    BusinessSettingsCompanion Function({
+      Value<int> id,
+      Value<bool> enableTableSales,
+      Value<bool> enableBarSales,
+      Value<bool> enableQuickSale,
+      Value<bool> enableTakeaway,
+      Value<bool> enableDelivery,
+    });
+typedef $$BusinessSettingsTableUpdateCompanionBuilder =
+    BusinessSettingsCompanion Function({
+      Value<int> id,
+      Value<bool> enableTableSales,
+      Value<bool> enableBarSales,
+      Value<bool> enableQuickSale,
+      Value<bool> enableTakeaway,
+      Value<bool> enableDelivery,
+    });
+
+class $$BusinessSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $BusinessSettingsTable> {
+  $$BusinessSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enableTableSales => $composableBuilder(
+    column: $table.enableTableSales,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enableBarSales => $composableBuilder(
+    column: $table.enableBarSales,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enableQuickSale => $composableBuilder(
+    column: $table.enableQuickSale,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enableTakeaway => $composableBuilder(
+    column: $table.enableTakeaway,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enableDelivery => $composableBuilder(
+    column: $table.enableDelivery,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BusinessSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BusinessSettingsTable> {
+  $$BusinessSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enableTableSales => $composableBuilder(
+    column: $table.enableTableSales,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enableBarSales => $composableBuilder(
+    column: $table.enableBarSales,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enableQuickSale => $composableBuilder(
+    column: $table.enableQuickSale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enableTakeaway => $composableBuilder(
+    column: $table.enableTakeaway,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enableDelivery => $composableBuilder(
+    column: $table.enableDelivery,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BusinessSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BusinessSettingsTable> {
+  $$BusinessSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<bool> get enableTableSales => $composableBuilder(
+    column: $table.enableTableSales,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get enableBarSales => $composableBuilder(
+    column: $table.enableBarSales,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get enableQuickSale => $composableBuilder(
+    column: $table.enableQuickSale,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get enableTakeaway => $composableBuilder(
+    column: $table.enableTakeaway,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get enableDelivery => $composableBuilder(
+    column: $table.enableDelivery,
+    builder: (column) => column,
+  );
+}
+
+class $$BusinessSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BusinessSettingsTable,
+          BusinessSetting,
+          $$BusinessSettingsTableFilterComposer,
+          $$BusinessSettingsTableOrderingComposer,
+          $$BusinessSettingsTableAnnotationComposer,
+          $$BusinessSettingsTableCreateCompanionBuilder,
+          $$BusinessSettingsTableUpdateCompanionBuilder,
+          (
+            BusinessSetting,
+            BaseReferences<
+              _$AppDatabase,
+              $BusinessSettingsTable,
+              BusinessSetting
+            >,
+          ),
+          BusinessSetting,
+          PrefetchHooks Function()
+        > {
+  $$BusinessSettingsTableTableManager(
+    _$AppDatabase db,
+    $BusinessSettingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BusinessSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BusinessSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BusinessSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> enableTableSales = const Value.absent(),
+                Value<bool> enableBarSales = const Value.absent(),
+                Value<bool> enableQuickSale = const Value.absent(),
+                Value<bool> enableTakeaway = const Value.absent(),
+                Value<bool> enableDelivery = const Value.absent(),
+              }) => BusinessSettingsCompanion(
+                id: id,
+                enableTableSales: enableTableSales,
+                enableBarSales: enableBarSales,
+                enableQuickSale: enableQuickSale,
+                enableTakeaway: enableTakeaway,
+                enableDelivery: enableDelivery,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> enableTableSales = const Value.absent(),
+                Value<bool> enableBarSales = const Value.absent(),
+                Value<bool> enableQuickSale = const Value.absent(),
+                Value<bool> enableTakeaway = const Value.absent(),
+                Value<bool> enableDelivery = const Value.absent(),
+              }) => BusinessSettingsCompanion.insert(
+                id: id,
+                enableTableSales: enableTableSales,
+                enableBarSales: enableBarSales,
+                enableQuickSale: enableQuickSale,
+                enableTakeaway: enableTakeaway,
+                enableDelivery: enableDelivery,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BusinessSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BusinessSettingsTable,
+      BusinessSetting,
+      $$BusinessSettingsTableFilterComposer,
+      $$BusinessSettingsTableOrderingComposer,
+      $$BusinessSettingsTableAnnotationComposer,
+      $$BusinessSettingsTableCreateCompanionBuilder,
+      $$BusinessSettingsTableUpdateCompanionBuilder,
+      (
+        BusinessSetting,
+        BaseReferences<_$AppDatabase, $BusinessSettingsTable, BusinessSetting>,
+      ),
+      BusinessSetting,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5525,4 +6191,6 @@ class $AppDatabaseManager {
       $$AccountItemsTableTableManager(_db, _db.accountItems);
   $$CashSessionsTableTableManager get cashSessions =>
       $$CashSessionsTableTableManager(_db, _db.cashSessions);
+  $$BusinessSettingsTableTableManager get businessSettings =>
+      $$BusinessSettingsTableTableManager(_db, _db.businessSettings);
 }

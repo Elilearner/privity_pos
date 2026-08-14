@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 import 'tables/account_items_table.dart';
+import 'tables/business_settings_table.dart';
 import 'tables/cash_sessions_table.dart';
 import 'tables/payments_table.dart';
 import 'tables/products_table.dart';
@@ -20,6 +21,7 @@ part 'app_database.g.dart';
     TableAccounts,
     AccountItems,
     CashSessions,
+    BusinessSettings,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -32,7 +34,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(driftDatabase(name: 'privity_pos'));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -57,6 +59,10 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(sales, sales.deliveryAddress);
 
           await m.addColumn(sales, sales.deliveryReference);
+        }
+
+        if (from < 7) {
+          await m.createTable(businessSettings);
         }
       },
     );

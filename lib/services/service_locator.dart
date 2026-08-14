@@ -1,11 +1,16 @@
+import 'business_settings_service.dart';
 import 'cash_service.dart';
+import 'printer_service.dart';
 import 'product_service.dart';
 import 'sale_service.dart';
 import 'table_service.dart';
-import 'printer_service.dart';
 
 class Services {
   Services._();
+
+  static BusinessSettingsService get settings {
+    return BusinessSettingsService.instance;
+  }
 
   static TableService get tables {
     return TableService.instance;
@@ -28,9 +33,14 @@ class Services {
   }
 
   static Future<void> initialize() async {
+    await settings.initialize();
+
     await products.initialize();
+
     await tables.initialize();
+
     await sales.initialize();
+
     await cash.initialize();
   }
 }
