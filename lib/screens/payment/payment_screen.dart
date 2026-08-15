@@ -7,7 +7,7 @@ import '../../models/payment.dart';
 import '../../models/payment_method.dart';
 import '../../models/sale_draft.dart';
 import '../../models/sale_type.dart';
-import '../../models/table_account.dart';
+import '../../models/open_account.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/payment/cash_payment_view.dart';
 import '../../widgets/payment/payment_method_card.dart';
@@ -25,7 +25,7 @@ class PaymentScreen extends StatefulWidget {
         'PaymentScreen solo puede recibir una cuenta o una venta.',
       );
 
-  final TableAccount? account;
+  final OpenAccount? account;
   final SaleDraft? draft;
 
   @override
@@ -82,7 +82,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         return 'Cobrar - Delivery';
 
       case SaleType.table:
-        return 'Cobrar';
+        return 'Cobrar - Mesa';
+
+      case SaleType.bar:
+        return 'Cobrar - Barra';
     }
   }
 

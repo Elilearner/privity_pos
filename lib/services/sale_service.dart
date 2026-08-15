@@ -3,15 +3,15 @@ import 'package:flutter/foundation.dart';
 import '../data/database/app_database.dart' as db;
 import '../data/repositories/sale_repository.dart';
 import '../models/invoice_item.dart';
+import '../models/open_account.dart';
 import '../models/payment.dart';
 import '../models/payment_method.dart';
 import '../models/product.dart';
 import '../models/sale.dart';
 import '../models/sale_draft.dart';
 import '../models/sale_type.dart';
-import '../models/table_account.dart';
+import 'open_account_service.dart';
 import 'product_service.dart';
-import 'table_service.dart';
 
 class SaleService extends ChangeNotifier {
   SaleService._();
@@ -57,11 +57,11 @@ class SaleService extends ChangeNotifier {
   }
 
   // =========================================================
-  // PRODUCTOS EN CUENTAS DE MESA
+  // PRODUCTOS EN CUENTAS ABIERTAS
   // =========================================================
 
   void addProductToAccount({
-    required TableAccount account,
+    required OpenAccount account,
     required Product product,
   }) {
     for (final item in account.items) {
@@ -75,7 +75,7 @@ class SaleService extends ChangeNotifier {
   }
 
   bool increaseProductQuantity({
-    required TableAccount account,
+    required OpenAccount account,
     required int productId,
   }) {
     final item = _findItem(account: account, productId: productId);
@@ -90,7 +90,7 @@ class SaleService extends ChangeNotifier {
   }
 
   bool decreaseProductQuantity({
-    required TableAccount account,
+    required OpenAccount account,
     required int productId,
   }) {
     final item = _findItem(account: account, productId: productId);
@@ -108,7 +108,7 @@ class SaleService extends ChangeNotifier {
     return true;
   }
 
-  bool removeProduct({required TableAccount account, required int productId}) {
+  bool removeProduct({required OpenAccount account, required int productId}) {
     final index = account.items.indexWhere(
       (item) => item.product.id == productId,
     );
@@ -122,34 +122,56 @@ class SaleService extends ChangeNotifier {
     return true;
   }
 
-  void clearAccount(TableAccount account) {
+  void clearAccount(OpenAccount account) {
     account.clear();
   }
 
-  double getSubtotal(TableAccount account) {
+  double getSubtotal(OpenAccount account) {
     return account.subtotal;
   }
 
-  int getTotalItems(TableAccount account) {
+  int getTotalItems(OpenAccount account) {
     return account.totalItems;
   }
 
-  InvoiceItem? getItem({
-    required TableAccount account,
-    required int productId,
-  }) {
+  InvoiceItem? getItem({required OpenAccount account, required int productId}) {
     return _findItem(account: account, productId: productId);
   }
 
   // =========================================================
-  // VENTAS DE MESA
+  // CIERRE DE CUENTAS ABIERTAS
+  // MESA / BARRA
   // =========================================================
 
-  Future<Sale?> closeTableSale({
-    required TableAccount account,
+  Future<Sale?> closeOpenAccountSale({
+    required OpenAccount account,
     required List<Payment> payments,
   }) async {
+    if (account.isClosed) {
+      return null;
+    }
+
     if (account.items.isEmpty) {
+      return null;
+    }
+
+    final saleType = _saleTypeForOpenAccount(account);
+
+    if (saleType == null) {
+      return null;
+    }
+
+    int? tableNumber;
+
+    if (account.isTable) {
+      tableNumber = account.tableNumber;
+
+      if (tableNumber == null || tableNumber <= 0) {
+        return null;
+      }
+    }
+
+    if (account.isBar && account.tableNumber != null) {
       return null;
     }
 
@@ -157,9 +179,8 @@ class SaleService extends ChangeNotifier {
       return null;
     }
 
-    // La cuenta que estamos cobrando ya tiene
-    // esos productos reservados para ella.
-    // Por eso se excluye del cálculo de reservas.
+    // La propia cuenta se excluye del cálculo de reservas.
+    // Sus productos ya están reservados para este cliente.
     if (!ProductService.instance.hasEnoughStock(
       account.items,
       excludeAccountId: account.id,
@@ -169,10 +190,10 @@ class SaleService extends ChangeNotifier {
 
     final sale = Sale(
       id: _nextSaleId,
-      type: SaleType.table,
+      type: saleType,
       createdAt: DateTime.now(),
       items: List<InvoiceItem>.from(account.items),
-      tableNumber: account.tableNumber,
+      tableNumber: tableNumber,
       accountId: account.id,
       customerName: account.customerName,
       payments: List<Payment>.from(payments),
@@ -185,8 +206,7 @@ class SaleService extends ChangeNotifier {
       return null;
     }
 
-    final accountClosed = await TableService.instance.closeAccount(
-      tableNumber: account.tableNumber,
+    final accountClosed = await OpenAccountService.instance.closeAccount(
       accountId: account.id,
     );
 
@@ -211,8 +231,8 @@ class SaleService extends ChangeNotifier {
     return sale;
   }
 
-  Future<Sale?> closeTableSaleWithCash({
-    required TableAccount account,
+  Future<Sale?> closeOpenAccountSaleWithCash({
+    required OpenAccount account,
     required double receivedAmount,
   }) async {
     final total = account.subtotal;
@@ -227,11 +247,11 @@ class SaleService extends ChangeNotifier {
       receivedAmount: receivedAmount,
     );
 
-    return closeTableSale(account: account, payments: [payment]);
+    return closeOpenAccountSale(account: account, payments: [payment]);
   }
 
-  Future<Sale?> closeTableSaleWithCard({
-    required TableAccount account,
+  Future<Sale?> closeOpenAccountSaleWithCard({
+    required OpenAccount account,
     String? reference,
   }) async {
     final payment = Payment(
@@ -240,11 +260,11 @@ class SaleService extends ChangeNotifier {
       reference: _cleanReference(reference),
     );
 
-    return closeTableSale(account: account, payments: [payment]);
+    return closeOpenAccountSale(account: account, payments: [payment]);
   }
 
-  Future<Sale?> closeTableSaleWithTransfer({
-    required TableAccount account,
+  Future<Sale?> closeOpenAccountSaleWithTransfer({
+    required OpenAccount account,
     String? reference,
   }) async {
     final payment = Payment(
@@ -253,18 +273,70 @@ class SaleService extends ChangeNotifier {
       reference: _cleanReference(reference),
     );
 
-    return closeTableSale(account: account, payments: [payment]);
+    return closeOpenAccountSale(account: account, payments: [payment]);
   }
 
-  Future<Sale?> closeTableSaleWithMixedPayments({
-    required TableAccount account,
+  Future<Sale?> closeOpenAccountSaleWithMixedPayments({
+    required OpenAccount account,
     required List<Payment> payments,
   }) async {
     if (payments.length < 2) {
       return null;
     }
 
-    return closeTableSale(account: account, payments: payments);
+    return closeOpenAccountSale(account: account, payments: payments);
+  }
+
+  // =========================================================
+  // COMPATIBILIDAD TEMPORAL
+  //
+  // Estos métodos siguen existiendo para no romper
+  // PaymentScreen mientras terminamos la migración.
+  // Internamente ya utilizan el flujo común Mesa / Barra.
+  // =========================================================
+
+  Future<Sale?> closeTableSale({
+    required OpenAccount account,
+    required List<Payment> payments,
+  }) {
+    return closeOpenAccountSale(account: account, payments: payments);
+  }
+
+  Future<Sale?> closeTableSaleWithCash({
+    required OpenAccount account,
+    required double receivedAmount,
+  }) {
+    return closeOpenAccountSaleWithCash(
+      account: account,
+      receivedAmount: receivedAmount,
+    );
+  }
+
+  Future<Sale?> closeTableSaleWithCard({
+    required OpenAccount account,
+    String? reference,
+  }) {
+    return closeOpenAccountSaleWithCard(account: account, reference: reference);
+  }
+
+  Future<Sale?> closeTableSaleWithTransfer({
+    required OpenAccount account,
+    String? reference,
+  }) {
+    return closeOpenAccountSaleWithTransfer(
+      account: account,
+      reference: reference,
+    );
+  }
+
+  Future<Sale?> closeTableSaleWithMixedPayments({
+    required OpenAccount account,
+    required List<Payment> payments,
+  }) {
+    return closeOpenAccountSaleWithMixedPayments(
+      account: account,
+      payments: payments,
+    );
   }
 
   // =========================================================
@@ -287,9 +359,6 @@ class SaleService extends ChangeNotifier {
       return null;
     }
 
-    // En este caso no se excluye ninguna cuenta,
-    // porque venta rápida, para llevar y delivery
-    // no pertenecen a una cuenta de mesa.
     if (!ProductService.instance.hasEnoughStock(draft.items)) {
       return null;
     }
@@ -414,6 +483,18 @@ class SaleService extends ChangeNotifier {
   // MÉTODOS INTERNOS
   // =========================================================
 
+  SaleType? _saleTypeForOpenAccount(OpenAccount account) {
+    if (account.isTable) {
+      return SaleType.table;
+    }
+
+    if (account.isBar) {
+      return SaleType.bar;
+    }
+
+    return null;
+  }
+
   void _registerCompletedSale(Sale sale) {
     _nextSaleId++;
 
@@ -453,7 +534,7 @@ class SaleService extends ChangeNotifier {
   }
 
   InvoiceItem? _findItem({
-    required TableAccount account,
+    required OpenAccount account,
     required int productId,
   }) {
     for (final item in account.items) {

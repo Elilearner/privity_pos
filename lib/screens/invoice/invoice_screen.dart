@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
 import '../../models/invoice_item.dart';
-import '../../models/table_account.dart';
+import '../../models/open_account.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/invoice/invoice_item_card.dart';
 import '../../widgets/invoice/invoice_summary_card.dart';
@@ -12,21 +12,36 @@ import '../product_picker/product_picker_screen.dart';
 class InvoiceScreen extends StatefulWidget {
   const InvoiceScreen({super.key, required this.account});
 
-  final TableAccount account;
+  final OpenAccount account;
 
   @override
   State<InvoiceScreen> createState() => _InvoiceScreenState();
 }
 
 class _InvoiceScreenState extends State<InvoiceScreen> {
-  TableAccount get account => widget.account;
+  OpenAccount get account => widget.account;
+
+  String get _accountTitle {
+    if (account.isBar) {
+      return 'Barra - ${account.customerName}';
+    }
+
+    return 'Mesa ${account.tableNumber} - '
+        '${account.customerName}';
+  }
+
+  String get _locationName {
+    if (account.isBar) {
+      return 'Barra';
+    }
+
+    return 'Mesa ${account.tableNumber}';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Mesa ${account.tableNumber} - ${account.customerName}'),
-      ),
+      appBar: AppBar(title: Text(_accountTitle)),
       body: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -44,7 +59,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             const SizedBox(height: 6),
 
             Text(
-              'Mesa ${account.tableNumber}',
+              _locationName,
               style: const TextStyle(color: AppColors.textSecondary),
             ),
 
@@ -82,7 +97,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                                 return;
                               }
 
-                              await Services.tables.saveAccount(account);
+                              await _saveAccount();
 
                               if (!mounted) {
                                 return;
@@ -109,7 +124,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                               return;
                             }
 
-                            await Services.tables.saveAccount(account);
+                            await _saveAccount();
 
                             if (!mounted) {
                               return;
@@ -135,7 +150,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                               return;
                             }
 
-                            await Services.tables.saveAccount(account);
+                            await _saveAccount();
 
                             if (!mounted) {
                               return;
@@ -189,6 +204,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
     if (currentProduct == null) {
       _showStockMessage(productName: item.product.name, availableStock: 0);
+
       return;
     }
 
@@ -214,6 +230,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         productName: currentProduct.name,
         availableStock: availableForThisAccount,
       );
+
       return;
     }
 
@@ -226,7 +243,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       return;
     }
 
-    await Services.tables.saveAccount(account);
+    await _saveAccount();
 
     if (!mounted) {
       return;
@@ -244,7 +261,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       return;
     }
 
-    await Services.tables.saveAccount(account);
+    await _saveAccount();
 
     if (!mounted) {
       return;
@@ -268,6 +285,10 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     }
 
     setState(() {});
+  }
+
+  Future<void> _saveAccount() async {
+    await Services.openAccounts.saveAccount(account);
   }
 
   void _showStockMessage({

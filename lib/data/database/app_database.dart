@@ -4,6 +4,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'tables/account_items_table.dart';
 import 'tables/business_settings_table.dart';
 import 'tables/cash_sessions_table.dart';
+import 'tables/open_accounts_table.dart';
 import 'tables/payments_table.dart';
 import 'tables/products_table.dart';
 import 'tables/sale_items_table.dart';
@@ -22,6 +23,7 @@ part 'app_database.g.dart';
     AccountItems,
     CashSessions,
     BusinessSettings,
+    OpenAccounts,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -34,7 +36,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(driftDatabase(name: 'privity_pos'));
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -42,6 +44,7 @@ class AppDatabase extends _$AppDatabase {
       onCreate: (Migrator m) async {
         await m.createAll();
       },
+
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 4) {
           await m.createTable(tableAccounts);
@@ -63,6 +66,35 @@ class AppDatabase extends _$AppDatabase {
 
         if (from < 7) {
           await m.createTable(businessSettings);
+        }
+
+        if (from < 8) {
+          await m.createTable(openAccounts);
+
+          // Migrar todas las cuentas existentes de Mesa
+          // hacia la nueva estructura general OpenAccounts.
+          //
+          // Conservamos exactamente el mismo ID para que
+          // AccountItems.accountId continúe relacionado
+          // con la cuenta correcta.
+          await customStatement('''
+            INSERT OR IGNORE INTO open_accounts (
+              id,
+              location_type,
+              table_number,
+              customer_name,
+              opened_at,
+              is_closed
+            )
+            SELECT
+              id,
+              'table',
+              table_number,
+              customer_name,
+              opened_at,
+              is_closed
+            FROM table_accounts
+            ''');
         }
       },
     );

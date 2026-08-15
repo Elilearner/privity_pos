@@ -10,6 +10,7 @@ import '../quick_sale/quick_sale_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tables/tables_screen.dart';
 import '../takeaway/takeaway_screen.dart';
+import '../bar/bar_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -52,6 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         const _HomeNavigationItem(title: 'Mesas', page: TablesScreen()),
       );
+    }
+    if (settings.enableBarSales) {
+      items.add(const _HomeNavigationItem(title: 'Barra', page: BarScreen()));
     }
 
     if (settings.enableQuickSale) {

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../models/product.dart';
-import '../../models/table_account.dart';
+import '../../models/open_account.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/products/product_card.dart';
 
 class ProductPickerScreen extends StatefulWidget {
   const ProductPickerScreen({super.key, required this.account});
 
-  final TableAccount account;
+  final OpenAccount account;
 
   @override
   State<ProductPickerScreen> createState() => _ProductPickerScreenState();

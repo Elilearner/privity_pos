@@ -1,0 +1,1 @@
+enum AccountLocationType { table, bar }

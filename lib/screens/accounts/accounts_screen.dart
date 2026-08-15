@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
-import '../../models/table_account.dart';
+import '../../models/open_account.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/accounts/account_card.dart';
 import '../invoice/invoice_screen.dart';
@@ -21,7 +21,7 @@ class AccountsScreen extends StatefulWidget {
 }
 
 class _AccountsScreenState extends State<AccountsScreen> {
-  List<TableAccount> get accounts {
+  List<OpenAccount> get accounts {
     return Services.tables.getAccounts(widget.tableNumber);
   }
 

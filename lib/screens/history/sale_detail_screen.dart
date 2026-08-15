@@ -375,6 +375,9 @@ class SaleDetailScreen extends StatelessWidget {
       case SaleType.table:
         return Icons.table_restaurant_outlined;
 
+      case SaleType.bar:
+        return Icons.local_bar_outlined;
+
       case SaleType.quickSale:
         return Icons.point_of_sale_outlined;
 
@@ -390,6 +393,9 @@ class SaleDetailScreen extends StatelessWidget {
     switch (sale.type) {
       case SaleType.table:
         return 'Venta en mesa';
+
+      case SaleType.bar:
+        return 'Venta en barra';
 
       case SaleType.quickSale:
         return 'Venta rápida';

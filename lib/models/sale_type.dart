@@ -1,1 +1,1 @@
-enum SaleType { table, quickSale, takeaway, delivery }
+enum SaleType { table, bar, quickSale, takeaway, delivery }

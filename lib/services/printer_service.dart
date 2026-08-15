@@ -373,6 +373,9 @@ class PrinterService {
       case SaleType.table:
         return 'Mesa';
 
+      case SaleType.bar:
+        return 'Barra';
+
       case SaleType.quickSale:
         return 'Venta rapida';
 

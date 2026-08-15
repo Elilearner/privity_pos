@@ -4107,6 +4107,425 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
   }
 }
 
+class $OpenAccountsTable extends OpenAccounts
+    with TableInfo<$OpenAccountsTable, OpenAccount> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OpenAccountsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _locationTypeMeta = const VerificationMeta(
+    'locationType',
+  );
+  @override
+  late final GeneratedColumn<String> locationType = GeneratedColumn<String>(
+    'location_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tableNumberMeta = const VerificationMeta(
+    'tableNumber',
+  );
+  @override
+  late final GeneratedColumn<int> tableNumber = GeneratedColumn<int>(
+    'table_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _customerNameMeta = const VerificationMeta(
+    'customerName',
+  );
+  @override
+  late final GeneratedColumn<String> customerName = GeneratedColumn<String>(
+    'customer_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _openedAtMeta = const VerificationMeta(
+    'openedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> openedAt = GeneratedColumn<DateTime>(
+    'opened_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isClosedMeta = const VerificationMeta(
+    'isClosed',
+  );
+  @override
+  late final GeneratedColumn<bool> isClosed = GeneratedColumn<bool>(
+    'is_closed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_closed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    locationType,
+    tableNumber,
+    customerName,
+    openedAt,
+    isClosed,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'open_accounts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OpenAccount> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('location_type')) {
+      context.handle(
+        _locationTypeMeta,
+        locationType.isAcceptableOrUnknown(
+          data['location_type']!,
+          _locationTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_locationTypeMeta);
+    }
+    if (data.containsKey('table_number')) {
+      context.handle(
+        _tableNumberMeta,
+        tableNumber.isAcceptableOrUnknown(
+          data['table_number']!,
+          _tableNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('customer_name')) {
+      context.handle(
+        _customerNameMeta,
+        customerName.isAcceptableOrUnknown(
+          data['customer_name']!,
+          _customerNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_customerNameMeta);
+    }
+    if (data.containsKey('opened_at')) {
+      context.handle(
+        _openedAtMeta,
+        openedAt.isAcceptableOrUnknown(data['opened_at']!, _openedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_openedAtMeta);
+    }
+    if (data.containsKey('is_closed')) {
+      context.handle(
+        _isClosedMeta,
+        isClosed.isAcceptableOrUnknown(data['is_closed']!, _isClosedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OpenAccount map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OpenAccount(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      locationType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location_type'],
+      )!,
+      tableNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}table_number'],
+      ),
+      customerName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}customer_name'],
+      )!,
+      openedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}opened_at'],
+      )!,
+      isClosed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_closed'],
+      )!,
+    );
+  }
+
+  @override
+  $OpenAccountsTable createAlias(String alias) {
+    return $OpenAccountsTable(attachedDatabase, alias);
+  }
+}
+
+class OpenAccount extends DataClass implements Insertable<OpenAccount> {
+  final int id;
+  final String locationType;
+  final int? tableNumber;
+  final String customerName;
+  final DateTime openedAt;
+  final bool isClosed;
+  const OpenAccount({
+    required this.id,
+    required this.locationType,
+    this.tableNumber,
+    required this.customerName,
+    required this.openedAt,
+    required this.isClosed,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['location_type'] = Variable<String>(locationType);
+    if (!nullToAbsent || tableNumber != null) {
+      map['table_number'] = Variable<int>(tableNumber);
+    }
+    map['customer_name'] = Variable<String>(customerName);
+    map['opened_at'] = Variable<DateTime>(openedAt);
+    map['is_closed'] = Variable<bool>(isClosed);
+    return map;
+  }
+
+  OpenAccountsCompanion toCompanion(bool nullToAbsent) {
+    return OpenAccountsCompanion(
+      id: Value(id),
+      locationType: Value(locationType),
+      tableNumber: tableNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tableNumber),
+      customerName: Value(customerName),
+      openedAt: Value(openedAt),
+      isClosed: Value(isClosed),
+    );
+  }
+
+  factory OpenAccount.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OpenAccount(
+      id: serializer.fromJson<int>(json['id']),
+      locationType: serializer.fromJson<String>(json['locationType']),
+      tableNumber: serializer.fromJson<int?>(json['tableNumber']),
+      customerName: serializer.fromJson<String>(json['customerName']),
+      openedAt: serializer.fromJson<DateTime>(json['openedAt']),
+      isClosed: serializer.fromJson<bool>(json['isClosed']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'locationType': serializer.toJson<String>(locationType),
+      'tableNumber': serializer.toJson<int?>(tableNumber),
+      'customerName': serializer.toJson<String>(customerName),
+      'openedAt': serializer.toJson<DateTime>(openedAt),
+      'isClosed': serializer.toJson<bool>(isClosed),
+    };
+  }
+
+  OpenAccount copyWith({
+    int? id,
+    String? locationType,
+    Value<int?> tableNumber = const Value.absent(),
+    String? customerName,
+    DateTime? openedAt,
+    bool? isClosed,
+  }) => OpenAccount(
+    id: id ?? this.id,
+    locationType: locationType ?? this.locationType,
+    tableNumber: tableNumber.present ? tableNumber.value : this.tableNumber,
+    customerName: customerName ?? this.customerName,
+    openedAt: openedAt ?? this.openedAt,
+    isClosed: isClosed ?? this.isClosed,
+  );
+  OpenAccount copyWithCompanion(OpenAccountsCompanion data) {
+    return OpenAccount(
+      id: data.id.present ? data.id.value : this.id,
+      locationType: data.locationType.present
+          ? data.locationType.value
+          : this.locationType,
+      tableNumber: data.tableNumber.present
+          ? data.tableNumber.value
+          : this.tableNumber,
+      customerName: data.customerName.present
+          ? data.customerName.value
+          : this.customerName,
+      openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
+      isClosed: data.isClosed.present ? data.isClosed.value : this.isClosed,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OpenAccount(')
+          ..write('id: $id, ')
+          ..write('locationType: $locationType, ')
+          ..write('tableNumber: $tableNumber, ')
+          ..write('customerName: $customerName, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('isClosed: $isClosed')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    locationType,
+    tableNumber,
+    customerName,
+    openedAt,
+    isClosed,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OpenAccount &&
+          other.id == this.id &&
+          other.locationType == this.locationType &&
+          other.tableNumber == this.tableNumber &&
+          other.customerName == this.customerName &&
+          other.openedAt == this.openedAt &&
+          other.isClosed == this.isClosed);
+}
+
+class OpenAccountsCompanion extends UpdateCompanion<OpenAccount> {
+  final Value<int> id;
+  final Value<String> locationType;
+  final Value<int?> tableNumber;
+  final Value<String> customerName;
+  final Value<DateTime> openedAt;
+  final Value<bool> isClosed;
+  const OpenAccountsCompanion({
+    this.id = const Value.absent(),
+    this.locationType = const Value.absent(),
+    this.tableNumber = const Value.absent(),
+    this.customerName = const Value.absent(),
+    this.openedAt = const Value.absent(),
+    this.isClosed = const Value.absent(),
+  });
+  OpenAccountsCompanion.insert({
+    this.id = const Value.absent(),
+    required String locationType,
+    this.tableNumber = const Value.absent(),
+    required String customerName,
+    required DateTime openedAt,
+    this.isClosed = const Value.absent(),
+  }) : locationType = Value(locationType),
+       customerName = Value(customerName),
+       openedAt = Value(openedAt);
+  static Insertable<OpenAccount> custom({
+    Expression<int>? id,
+    Expression<String>? locationType,
+    Expression<int>? tableNumber,
+    Expression<String>? customerName,
+    Expression<DateTime>? openedAt,
+    Expression<bool>? isClosed,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (locationType != null) 'location_type': locationType,
+      if (tableNumber != null) 'table_number': tableNumber,
+      if (customerName != null) 'customer_name': customerName,
+      if (openedAt != null) 'opened_at': openedAt,
+      if (isClosed != null) 'is_closed': isClosed,
+    });
+  }
+
+  OpenAccountsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? locationType,
+    Value<int?>? tableNumber,
+    Value<String>? customerName,
+    Value<DateTime>? openedAt,
+    Value<bool>? isClosed,
+  }) {
+    return OpenAccountsCompanion(
+      id: id ?? this.id,
+      locationType: locationType ?? this.locationType,
+      tableNumber: tableNumber ?? this.tableNumber,
+      customerName: customerName ?? this.customerName,
+      openedAt: openedAt ?? this.openedAt,
+      isClosed: isClosed ?? this.isClosed,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (locationType.present) {
+      map['location_type'] = Variable<String>(locationType.value);
+    }
+    if (tableNumber.present) {
+      map['table_number'] = Variable<int>(tableNumber.value);
+    }
+    if (customerName.present) {
+      map['customer_name'] = Variable<String>(customerName.value);
+    }
+    if (openedAt.present) {
+      map['opened_at'] = Variable<DateTime>(openedAt.value);
+    }
+    if (isClosed.present) {
+      map['is_closed'] = Variable<bool>(isClosed.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OpenAccountsCompanion(')
+          ..write('id: $id, ')
+          ..write('locationType: $locationType, ')
+          ..write('tableNumber: $tableNumber, ')
+          ..write('customerName: $customerName, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('isClosed: $isClosed')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4120,6 +4539,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $BusinessSettingsTable businessSettings = $BusinessSettingsTable(
     this,
   );
+  late final $OpenAccountsTable openAccounts = $OpenAccountsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4133,6 +4553,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     accountItems,
     cashSessions,
     businessSettings,
+    openAccounts,
   ];
 }
 
@@ -6173,6 +6594,225 @@ typedef $$BusinessSettingsTableProcessedTableManager =
       BusinessSetting,
       PrefetchHooks Function()
     >;
+typedef $$OpenAccountsTableCreateCompanionBuilder =
+    OpenAccountsCompanion Function({
+      Value<int> id,
+      required String locationType,
+      Value<int?> tableNumber,
+      required String customerName,
+      required DateTime openedAt,
+      Value<bool> isClosed,
+    });
+typedef $$OpenAccountsTableUpdateCompanionBuilder =
+    OpenAccountsCompanion Function({
+      Value<int> id,
+      Value<String> locationType,
+      Value<int?> tableNumber,
+      Value<String> customerName,
+      Value<DateTime> openedAt,
+      Value<bool> isClosed,
+    });
+
+class $$OpenAccountsTableFilterComposer
+    extends Composer<_$AppDatabase, $OpenAccountsTable> {
+  $$OpenAccountsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locationType => $composableBuilder(
+    column: $table.locationType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tableNumber => $composableBuilder(
+    column: $table.tableNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get customerName => $composableBuilder(
+    column: $table.customerName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isClosed => $composableBuilder(
+    column: $table.isClosed,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$OpenAccountsTableOrderingComposer
+    extends Composer<_$AppDatabase, $OpenAccountsTable> {
+  $$OpenAccountsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locationType => $composableBuilder(
+    column: $table.locationType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tableNumber => $composableBuilder(
+    column: $table.tableNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get customerName => $composableBuilder(
+    column: $table.customerName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isClosed => $composableBuilder(
+    column: $table.isClosed,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OpenAccountsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OpenAccountsTable> {
+  $$OpenAccountsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get locationType => $composableBuilder(
+    column: $table.locationType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get tableNumber => $composableBuilder(
+    column: $table.tableNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get customerName => $composableBuilder(
+    column: $table.customerName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get openedAt =>
+      $composableBuilder(column: $table.openedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isClosed =>
+      $composableBuilder(column: $table.isClosed, builder: (column) => column);
+}
+
+class $$OpenAccountsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OpenAccountsTable,
+          OpenAccount,
+          $$OpenAccountsTableFilterComposer,
+          $$OpenAccountsTableOrderingComposer,
+          $$OpenAccountsTableAnnotationComposer,
+          $$OpenAccountsTableCreateCompanionBuilder,
+          $$OpenAccountsTableUpdateCompanionBuilder,
+          (
+            OpenAccount,
+            BaseReferences<_$AppDatabase, $OpenAccountsTable, OpenAccount>,
+          ),
+          OpenAccount,
+          PrefetchHooks Function()
+        > {
+  $$OpenAccountsTableTableManager(_$AppDatabase db, $OpenAccountsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OpenAccountsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OpenAccountsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OpenAccountsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> locationType = const Value.absent(),
+                Value<int?> tableNumber = const Value.absent(),
+                Value<String> customerName = const Value.absent(),
+                Value<DateTime> openedAt = const Value.absent(),
+                Value<bool> isClosed = const Value.absent(),
+              }) => OpenAccountsCompanion(
+                id: id,
+                locationType: locationType,
+                tableNumber: tableNumber,
+                customerName: customerName,
+                openedAt: openedAt,
+                isClosed: isClosed,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String locationType,
+                Value<int?> tableNumber = const Value.absent(),
+                required String customerName,
+                required DateTime openedAt,
+                Value<bool> isClosed = const Value.absent(),
+              }) => OpenAccountsCompanion.insert(
+                id: id,
+                locationType: locationType,
+                tableNumber: tableNumber,
+                customerName: customerName,
+                openedAt: openedAt,
+                isClosed: isClosed,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$OpenAccountsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OpenAccountsTable,
+      OpenAccount,
+      $$OpenAccountsTableFilterComposer,
+      $$OpenAccountsTableOrderingComposer,
+      $$OpenAccountsTableAnnotationComposer,
+      $$OpenAccountsTableCreateCompanionBuilder,
+      $$OpenAccountsTableUpdateCompanionBuilder,
+      (
+        OpenAccount,
+        BaseReferences<_$AppDatabase, $OpenAccountsTable, OpenAccount>,
+      ),
+      OpenAccount,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6193,4 +6833,6 @@ class $AppDatabaseManager {
       $$CashSessionsTableTableManager(_db, _db.cashSessions);
   $$BusinessSettingsTableTableManager get businessSettings =>
       $$BusinessSettingsTableTableManager(_db, _db.businessSettings);
+  $$OpenAccountsTableTableManager get openAccounts =>
+      $$OpenAccountsTableTableManager(_db, _db.openAccounts);
 }

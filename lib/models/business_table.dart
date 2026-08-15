@@ -1,17 +1,19 @@
-import 'table_account.dart';
+import 'open_account.dart';
 
 class BusinessTable {
   BusinessTable({
     required this.id,
     required this.number,
     this.name,
-    List<TableAccount>? accounts,
+    List<OpenAccount>? accounts,
   }) : accounts = accounts ?? [];
 
   final int id;
   final int number;
+
   String? name;
-  final List<TableAccount> accounts;
+
+  final List<OpenAccount> accounts;
 
   bool get isOccupied {
     return accounts.isNotEmpty;
@@ -29,7 +31,7 @@ class BusinessTable {
     return accounts.fold(0, (sum, account) => sum + account.totalItems);
   }
 
-  TableAccount? get firstAccount {
+  OpenAccount? get firstAccount {
     if (accounts.isEmpty) {
       return null;
     }
@@ -37,7 +39,7 @@ class BusinessTable {
     return accounts.first;
   }
 
-  void addAccount(TableAccount account) {
+  void addAccount(OpenAccount account) {
     accounts.add(account);
   }
 
@@ -45,7 +47,7 @@ class BusinessTable {
     accounts.removeWhere((account) => account.id == accountId);
   }
 
-  TableAccount? findAccount(int accountId) {
+  OpenAccount? findAccount(int accountId) {
     for (final account in accounts) {
       if (account.id == accountId) {
         return account;

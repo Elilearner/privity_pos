@@ -1,5 +1,6 @@
 import 'business_settings_service.dart';
 import 'cash_service.dart';
+import 'open_account_service.dart';
 import 'printer_service.dart';
 import 'product_service.dart';
 import 'sale_service.dart';
@@ -10,6 +11,10 @@ class Services {
 
   static BusinessSettingsService get settings {
     return BusinessSettingsService.instance;
+  }
+
+  static OpenAccountService get openAccounts {
+    return OpenAccountService.instance;
   }
 
   static TableService get tables {
@@ -36,6 +41,8 @@ class Services {
     await settings.initialize();
 
     await products.initialize();
+
+    await openAccounts.initialize();
 
     await tables.initialize();
 

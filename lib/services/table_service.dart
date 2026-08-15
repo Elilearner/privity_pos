@@ -2,10 +2,9 @@ import 'package:flutter/foundation.dart';
 
 import '../core/business_config.dart';
 import '../core/table_names.dart';
-import '../data/database/app_database.dart' as db;
-import '../data/repositories/table_account_repository.dart';
 import '../models/business_table.dart';
-import '../models/table_account.dart';
+import '../models/open_account.dart';
+import 'open_account_service.dart';
 
 class TableService extends ChangeNotifier {
   TableService._();
@@ -14,12 +13,7 @@ class TableService extends ChangeNotifier {
 
   final List<BusinessTable> _tables = [];
 
-  late final db.AppDatabase _database;
-  late final TableAccountRepository _repository;
-
   bool _initialized = false;
-
-  int _nextAccountId = 1;
 
   List<BusinessTable> get tables {
     return List.unmodifiable(_tables);
@@ -30,9 +24,7 @@ class TableService extends ChangeNotifier {
       return;
     }
 
-    _database = db.AppDatabase();
-
-    _repository = TableAccountRepository(_database);
+    await OpenAccountService.instance.initialize();
 
     _tables.clear();
 
@@ -51,29 +43,68 @@ class TableService extends ChangeNotifier {
       );
     }
 
-    final storedAccounts = await _repository.getOpenAccounts();
+    final storedAccounts = OpenAccountService.instance.allOpenAccounts;
 
     for (final account in storedAccounts) {
-      final table = getTable(account.tableNumber);
+      if (!account.isTable) {
+        continue;
+      }
+
+      final tableNumber = account.tableNumber;
+
+      if (tableNumber == null) {
+        continue;
+      }
+
+      final table = getTable(tableNumber);
 
       if (table != null) {
         table.addAccount(account);
       }
     }
 
-    if (storedAccounts.isNotEmpty) {
-      int highestId = 0;
-
-      for (final account in storedAccounts) {
-        if (account.id > highestId) {
-          highestId = account.id;
-        }
-      }
-
-      _nextAccountId = highestId + 1;
-    }
+    OpenAccountService.instance.addListener(_handleOpenAccountsChanged);
 
     _initialized = true;
+  }
+
+  @override
+  void dispose() {
+    OpenAccountService.instance.removeListener(_handleOpenAccountsChanged);
+
+    super.dispose();
+  }
+
+  void _handleOpenAccountsChanged() {
+    _synchronizeTableAccounts();
+
+    notifyListeners();
+  }
+
+  void _synchronizeTableAccounts() {
+    for (final table in _tables) {
+      table.accounts.clear();
+    }
+
+    final accounts = OpenAccountService.instance.allOpenAccounts;
+
+    for (final account in accounts) {
+      if (!account.isTable) {
+        continue;
+      }
+
+      final tableNumber = account.tableNumber;
+
+      if (tableNumber == null) {
+        continue;
+      }
+
+      final table = getTable(tableNumber);
+
+      if (table != null) {
+        table.addAccount(account);
+      }
+    }
   }
 
   BusinessTable? getTable(int tableNumber) {
@@ -86,7 +117,7 @@ class TableService extends ChangeNotifier {
     return null;
   }
 
-  List<TableAccount> getAccounts(int tableNumber) {
+  List<OpenAccount> getAccounts(int tableNumber) {
     final table = getTable(tableNumber);
 
     if (table == null) {
@@ -96,92 +127,47 @@ class TableService extends ChangeNotifier {
     return List.unmodifiable(table.accounts);
   }
 
-  List<TableAccount> get allOpenAccounts {
-    final result = <TableAccount>[];
-
-    for (final table in _tables) {
-      for (final account in table.accounts) {
-        if (!account.isClosed) {
-          result.add(account);
-        }
-      }
-    }
-
-    return List.unmodifiable(result);
+  List<OpenAccount> get allOpenAccounts {
+    return OpenAccountService.instance.allOpenAccounts;
   }
 
   int getReservedQuantity({required int productId, int? excludeAccountId}) {
-    var reservedQuantity = 0;
-
-    for (final table in _tables) {
-      for (final account in table.accounts) {
-        if (account.isClosed) {
-          continue;
-        }
-
-        if (excludeAccountId != null && account.id == excludeAccountId) {
-          continue;
-        }
-
-        for (final item in account.items) {
-          if (item.product.id == productId) {
-            reservedQuantity += item.quantity;
-          }
-        }
-      }
-    }
-
-    return reservedQuantity;
+    return OpenAccountService.instance.getReservedQuantity(
+      productId: productId,
+      excludeAccountId: excludeAccountId,
+    );
   }
 
   int getReservedQuantityForAccount({
     required int productId,
     required int accountId,
   }) {
-    for (final table in _tables) {
-      for (final account in table.accounts) {
-        if (account.id != accountId || account.isClosed) {
-          continue;
-        }
-
-        var quantity = 0;
-
-        for (final item in account.items) {
-          if (item.product.id == productId) {
-            quantity += item.quantity;
-          }
-        }
-
-        return quantity;
-      }
-    }
-
-    return 0;
+    return OpenAccountService.instance.getReservedQuantityForAccount(
+      productId: productId,
+      accountId: accountId,
+    );
   }
 
-  Future<TableAccount?> openAccount({
+  Future<OpenAccount?> openAccount({
     required int tableNumber,
     required String customerName,
   }) async {
     final table = getTable(tableNumber);
 
-    final cleanName = customerName.trim();
-
-    if (table == null || cleanName.isEmpty) {
+    if (table == null) {
       return null;
     }
 
-    final account = TableAccount(
-      id: _nextAccountId,
+    final account = await OpenAccountService.instance.openTableAccount(
       tableNumber: tableNumber,
-      customerName: cleanName,
+      customerName: customerName,
     );
 
-    await _repository.saveAccount(account);
+    if (account == null) {
+      return null;
+    }
 
-    _nextAccountId++;
-
-    table.addAccount(account);
+    _synchronizeTableAccounts();
 
     notifyListeners();
 
@@ -204,11 +190,15 @@ class TableService extends ChangeNotifier {
       return false;
     }
 
-    account.isClosed = true;
+    final closed = await OpenAccountService.instance.closeAccount(
+      accountId: accountId,
+    );
 
-    await _repository.markAccountClosed(accountId);
+    if (!closed) {
+      return false;
+    }
 
-    table.removeAccount(accountId);
+    _synchronizeTableAccounts();
 
     notifyListeners();
 
@@ -222,9 +212,7 @@ class TableService extends ChangeNotifier {
   }) async {
     final table = getTable(tableNumber);
 
-    final cleanName = customerName.trim();
-
-    if (table == null || cleanName.isEmpty) {
+    if (table == null) {
       return false;
     }
 
@@ -234,19 +222,66 @@ class TableService extends ChangeNotifier {
       return false;
     }
 
-    account.customerName = cleanName;
+    final renamed = await OpenAccountService.instance.renameAccount(
+      accountId: accountId,
+      customerName: customerName,
+    );
 
-    await _repository.saveAccount(account);
+    if (!renamed) {
+      return false;
+    }
 
     notifyListeners();
 
     return true;
   }
 
-  Future<void> saveAccount(TableAccount account) async {
-    await _repository.saveAccount(account);
+  Future<void> saveAccount(OpenAccount account) async {
+    await OpenAccountService.instance.saveAccount(account);
 
     notifyListeners();
+  }
+
+  Future<bool> moveAccountToTable({
+    required int accountId,
+    required int tableNumber,
+  }) async {
+    final table = getTable(tableNumber);
+
+    if (table == null) {
+      return false;
+    }
+
+    final moved = await OpenAccountService.instance.moveToTable(
+      accountId: accountId,
+      tableNumber: tableNumber,
+    );
+
+    if (!moved) {
+      return false;
+    }
+
+    _synchronizeTableAccounts();
+
+    notifyListeners();
+
+    return true;
+  }
+
+  Future<bool> moveAccountToBar({required int accountId}) async {
+    final moved = await OpenAccountService.instance.moveToBar(
+      accountId: accountId,
+    );
+
+    if (!moved) {
+      return false;
+    }
+
+    _synchronizeTableAccounts();
+
+    notifyListeners();
+
+    return true;
   }
 
   bool get hasOpenTables {
