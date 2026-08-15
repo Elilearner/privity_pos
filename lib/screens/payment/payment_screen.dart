@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../core/business_config.dart';
 import '../../core/currency_formatter.dart';
+import '../../models/open_account.dart';
 import '../../models/payment.dart';
 import '../../models/payment_method.dart';
 import '../../models/sale_draft.dart';
 import '../../models/sale_type.dart';
-import '../../models/open_account.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/payment/cash_payment_view.dart';
 import '../../widgets/payment/payment_method_card.dart';
@@ -56,7 +56,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   bool _processingPayment = false;
 
-  bool get _isTableSale => widget.account != null;
+  bool get _isOpenAccountSale => widget.account != null;
 
   double get _total {
     if (widget.account != null) {
@@ -588,8 +588,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       _processingPayment = true;
     });
 
-    final sale = _isTableSale
-        ? await Services.sales.closeTableSaleWithCash(
+    final sale = _isOpenAccountSale
+        ? await Services.sales.closeOpenAccountSaleWithCash(
             account: widget.account!,
             receivedAmount: receivedAmount,
           )
@@ -643,8 +643,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     final cleanReference = reference.isEmpty ? null : reference;
 
-    final sale = _isTableSale
-        ? await Services.sales.closeTableSaleWithCard(
+    final sale = _isOpenAccountSale
+        ? await Services.sales.closeOpenAccountSaleWithCard(
             account: widget.account!,
             reference: cleanReference,
           )
@@ -693,8 +693,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     final cleanReference = reference.isEmpty ? null : reference;
 
-    final sale = _isTableSale
-        ? await Services.sales.closeTableSaleWithTransfer(
+    final sale = _isOpenAccountSale
+        ? await Services.sales.closeOpenAccountSaleWithTransfer(
             account: widget.account!,
             reference: cleanReference,
           )
@@ -779,8 +779,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       _processingPayment = true;
     });
 
-    final sale = _isTableSale
-        ? await Services.sales.closeTableSaleWithMixedPayments(
+    final sale = _isOpenAccountSale
+        ? await Services.sales.closeOpenAccountSaleWithMixedPayments(
             account: widget.account!,
             payments: payments,
           )

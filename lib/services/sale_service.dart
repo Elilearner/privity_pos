@@ -288,58 +288,6 @@ class SaleService extends ChangeNotifier {
   }
 
   // =========================================================
-  // COMPATIBILIDAD TEMPORAL
-  //
-  // Estos métodos siguen existiendo para no romper
-  // PaymentScreen mientras terminamos la migración.
-  // Internamente ya utilizan el flujo común Mesa / Barra.
-  // =========================================================
-
-  Future<Sale?> closeTableSale({
-    required OpenAccount account,
-    required List<Payment> payments,
-  }) {
-    return closeOpenAccountSale(account: account, payments: payments);
-  }
-
-  Future<Sale?> closeTableSaleWithCash({
-    required OpenAccount account,
-    required double receivedAmount,
-  }) {
-    return closeOpenAccountSaleWithCash(
-      account: account,
-      receivedAmount: receivedAmount,
-    );
-  }
-
-  Future<Sale?> closeTableSaleWithCard({
-    required OpenAccount account,
-    String? reference,
-  }) {
-    return closeOpenAccountSaleWithCard(account: account, reference: reference);
-  }
-
-  Future<Sale?> closeTableSaleWithTransfer({
-    required OpenAccount account,
-    String? reference,
-  }) {
-    return closeOpenAccountSaleWithTransfer(
-      account: account,
-      reference: reference,
-    );
-  }
-
-  Future<Sale?> closeTableSaleWithMixedPayments({
-    required OpenAccount account,
-    required List<Payment> payments,
-  }) {
-    return closeOpenAccountSaleWithMixedPayments(
-      account: account,
-      payments: payments,
-    );
-  }
-
-  // =========================================================
   // VENTA RÁPIDA / PARA LLEVAR / DELIVERY
   // =========================================================
 
