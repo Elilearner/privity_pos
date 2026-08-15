@@ -1,6 +1,10 @@
+import 'app_user_service.dart';
+import 'auth_service.dart';
+import 'authorization_service.dart';
 import 'business_settings_service.dart';
 import 'cash_service.dart';
 import 'open_account_service.dart';
+import 'permission_service.dart';
 import 'printer_service.dart';
 import 'product_service.dart';
 import 'sale_service.dart';
@@ -8,6 +12,22 @@ import 'table_service.dart';
 
 class Services {
   Services._();
+
+  static AuthService get auth {
+    return AuthService.instance;
+  }
+
+  static AuthorizationService get authorization {
+    return AuthorizationService.instance;
+  }
+
+  static AppUserService get users {
+    return AppUserService.instance;
+  }
+
+  static PermissionService get permissions {
+    return PermissionService.instance;
+  }
 
   static BusinessSettingsService get settings {
     return BusinessSettingsService.instance;
@@ -39,6 +59,10 @@ class Services {
 
   static Future<void> initialize() async {
     await settings.initialize();
+
+    await auth.initialize();
+
+    await users.initialize();
 
     await products.initialize();
 

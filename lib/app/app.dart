@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/app_theme.dart';
-import '../screens/home/home_screen.dart';
+import '../screens/auth/auth_gate_screen.dart';
 
 class PrivityDrinkApp extends StatelessWidget {
   const PrivityDrinkApp({super.key});
@@ -12,7 +12,7 @@ class PrivityDrinkApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'PRIVITY DRINK',
       theme: AppTheme.darkTheme,
-      home: const HomeScreen(),
+      home: const AuthGateScreen(),
     );
   }
 }

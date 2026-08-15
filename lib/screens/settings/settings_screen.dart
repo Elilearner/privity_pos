@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 
 import '../../core/app_colors.dart';
+import '../../models/app_permission.dart';
 import '../../services/printer_service.dart';
 import '../../services/service_locator.dart';
+import '../../widgets/security/authorization_dialog.dart';
 import '../product_management/product_management_screen.dart';
+import '../user_management/user_management_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -17,6 +20,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _searchingPrinters = false;
   bool _printingTest = false;
   bool _savingModule = false;
+
+  bool get _canViewSettings {
+    return Services.permissions.hasPermission(AppPermission.viewSettings);
+  }
+
+  bool get _canManageModules {
+    return Services.permissions.hasPermission(
+      AppPermission.manageBusinessModules,
+    );
+  }
+
+  bool get _canManageProducts {
+    return Services.permissions.hasPermission(AppPermission.manageProducts);
+  }
+
+  bool get _canManagePrinter {
+    return Services.permissions.hasPermission(AppPermission.managePrinter);
+  }
 
   PrinterPaperSize get _paperSize {
     return Services.printer.paperSize;
@@ -36,6 +57,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_canViewSettings) {
+      return const _AccessDeniedView();
+    }
+
     return ListView(
       padding: const EdgeInsets.all(14),
       children: [
@@ -48,6 +73,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
 
+        // El usuario con acceso a Ajustes puede ver
+        // los módulos. Si no tiene permiso para
+        // modificarlos, se solicitará autorización.
         const SizedBox(height: 20),
 
         const _SettingsSectionTitle(title: 'MÓDULOS DEL NEGOCIO'),
@@ -58,95 +86,113 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         const SizedBox(height: 8),
 
-        const Text(
-          'Activa únicamente las formas de venta que utiliza el negocio.',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+        Text(
+          _canManageModules
+              ? 'Activa únicamente las formas de venta '
+                    'que utiliza el negocio.'
+              : 'Los cambios en los módulos requieren '
+                    'autorización administrativa.',
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
         ),
 
-        const SizedBox(height: 24),
+        if (_canManageProducts) ...[
+          const SizedBox(height: 24),
 
-        const _SettingsSectionTitle(title: 'PRODUCTOS E INVENTARIO'),
+          const _SettingsSectionTitle(title: 'PRODUCTOS E INVENTARIO'),
 
-        const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-        _buildProductManagementCard(),
+          _buildProductManagementCard(),
+        ],
 
-        const SizedBox(height: 24),
+        if (Services.permissions.canManageUsers) ...[
+          const SizedBox(height: 24),
 
-        const _SettingsSectionTitle(title: 'IMPRESORA'),
+          const _SettingsSectionTitle(title: 'USUARIOS Y SEGURIDAD'),
 
-        const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-        _buildPrinterCard(),
+          _buildUserManagementCard(),
+        ],
 
-        const SizedBox(height: 20),
+        if (_canManagePrinter) ...[
+          const SizedBox(height: 24),
 
-        const _SettingsSectionTitle(title: 'TAMAÑO DEL PAPEL'),
+          const _SettingsSectionTitle(title: 'IMPRESORA'),
 
-        const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-        _buildPaperSizeCard(),
+          _buildPrinterCard(),
 
-        const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-        SizedBox(
-          height: 50,
-          child: FilledButton.icon(
-            onPressed: _searchingPrinters ? null : _searchPrinters,
-            icon: _searchingPrinters
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.bluetooth_searching),
-            label: Text(
-              _searchingPrinters ? 'BUSCANDO...' : 'BUSCAR IMPRESORAS',
+          const _SettingsSectionTitle(title: 'TAMAÑO DEL PAPEL'),
+
+          const SizedBox(height: 10),
+
+          _buildPaperSizeCard(),
+
+          const SizedBox(height: 20),
+
+          SizedBox(
+            height: 50,
+            child: FilledButton.icon(
+              onPressed: _searchingPrinters ? null : _searchPrinters,
+              icon: _searchingPrinters
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.bluetooth_searching),
+              label: Text(
+                _searchingPrinters ? 'BUSCANDO...' : 'BUSCAR IMPRESORAS',
+              ),
             ),
           ),
-        ),
 
-        const SizedBox(height: 12),
-
-        SizedBox(
-          height: 50,
-          child: OutlinedButton.icon(
-            onPressed: !_hasSelectedPrinter || _printingTest
-                ? null
-                : _printTest,
-            icon: _printingTest
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.print_outlined),
-            label: Text(_printingTest ? 'IMPRIMIENDO...' : 'IMPRIMIR PRUEBA'),
-          ),
-        ),
-
-        if (_hasSelectedPrinter) ...[
           const SizedBox(height: 12),
 
           SizedBox(
-            height: 48,
-            child: TextButton.icon(
-              onPressed: _clearPrinter,
-              icon: const Icon(Icons.link_off),
-              label: const Text('QUITAR IMPRESORA'),
+            height: 50,
+            child: OutlinedButton.icon(
+              onPressed: !_hasSelectedPrinter || _printingTest
+                  ? null
+                  : _printTest,
+              icon: _printingTest
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.print_outlined),
+              label: Text(_printingTest ? 'IMPRIMIENDO...' : 'IMPRIMIR PRUEBA'),
             ),
           ),
+
+          if (_hasSelectedPrinter) ...[
+            const SizedBox(height: 12),
+
+            SizedBox(
+              height: 48,
+              child: TextButton.icon(
+                onPressed: _clearPrinter,
+                icon: const Icon(Icons.link_off),
+                label: const Text('QUITAR IMPRESORA'),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 24),
+
+          const Text(
+            'La conexión e impresión física '
+            'debe probarse en un dispositivo real '
+            'con una impresora térmica Bluetooth.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          ),
         ],
-
-        const SizedBox(height: 24),
-
-        const Text(
-          'La conexión e impresión física '
-          'debe probarse en un dispositivo real '
-          'con una impresora térmica Bluetooth.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
 
         const SizedBox(height: 24),
       ],
@@ -171,7 +217,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: settings.enableTableSales,
             enabled: !_savingModule,
             onChanged: (value) {
-              _updateModule(() => settings.setTableSalesEnabled(value));
+              _updateModule(
+                actionDescription: value
+                    ? 'Se requiere autorización para '
+                          'activar el módulo Mesas.'
+                    : 'Se requiere autorización para '
+                          'desactivar el módulo Mesas.',
+                update: () => settings.setTableSalesEnabled(value),
+              );
             },
           ),
 
@@ -184,7 +237,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: settings.enableBarSales,
             enabled: !_savingModule,
             onChanged: (value) {
-              _updateModule(() => settings.setBarSalesEnabled(value));
+              _updateModule(
+                actionDescription: value
+                    ? 'Se requiere autorización para '
+                          'activar el módulo Barra.'
+                    : 'Se requiere autorización para '
+                          'desactivar el módulo Barra.',
+                update: () => settings.setBarSalesEnabled(value),
+              );
             },
           ),
 
@@ -197,7 +257,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: settings.enableQuickSale,
             enabled: !_savingModule,
             onChanged: (value) {
-              _updateModule(() => settings.setQuickSaleEnabled(value));
+              _updateModule(
+                actionDescription: value
+                    ? 'Se requiere autorización para '
+                          'activar Venta rápida.'
+                    : 'Se requiere autorización para '
+                          'desactivar Venta rápida.',
+                update: () => settings.setQuickSaleEnabled(value),
+              );
             },
           ),
 
@@ -210,7 +277,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: settings.enableTakeaway,
             enabled: !_savingModule,
             onChanged: (value) {
-              _updateModule(() => settings.setTakeawayEnabled(value));
+              _updateModule(
+                actionDescription: value
+                    ? 'Se requiere autorización para '
+                          'activar Para llevar.'
+                    : 'Se requiere autorización para '
+                          'desactivar Para llevar.',
+                update: () => settings.setTakeawayEnabled(value),
+              );
             },
           ),
 
@@ -223,7 +297,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: settings.enableDelivery,
             enabled: !_savingModule,
             onChanged: (value) {
-              _updateModule(() => settings.setDeliveryEnabled(value));
+              _updateModule(
+                actionDescription: value
+                    ? 'Se requiere autorización para '
+                          'activar Delivery.'
+                    : 'Se requiere autorización para '
+                          'desactivar Delivery.',
+                update: () => settings.setDeliveryEnabled(value),
+              );
             },
           ),
         ],
@@ -231,9 +312,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _updateModule(Future<void> Function() update) async {
+  Future<void> _updateModule({
+    required String actionDescription,
+    required Future<void> Function() update,
+  }) async {
     if (_savingModule) {
       return;
+    }
+
+    // Si el usuario actual no tiene el permiso,
+    // solicitamos autorización puntual.
+    if (!_canManageModules) {
+      final authorization = await showAuthorizationDialog(
+        context: context,
+        requiredPermission: AppPermission.manageBusinessModules,
+        actionDescription: actionDescription,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!authorization.authorized) {
+        return;
+      }
     }
 
     setState(() {
@@ -242,16 +344,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       await update();
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              _canManageModules
+                  ? 'Configuración actualizada correctamente.'
+                  : 'Cambio autorizado y realizado correctamente.',
+            ),
+          ),
+        );
     } catch (_) {
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo guardar la configuración del módulo.'),
-        ),
-      );
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No se pudo guardar la '
+              'configuración del módulo.',
+            ),
+          ),
+        );
     } finally {
       if (mounted) {
         setState(() {
@@ -267,17 +390,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () async {
-          await Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ProductManagementScreen()),
-          );
+        onTap: !_canManageProducts
+            ? null
+            : () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ProductManagementScreen(),
+                  ),
+                );
 
-          if (!mounted) {
-            return;
-          }
+                if (!mounted) {
+                  return;
+                }
 
-          setState(() {});
-        },
+                setState(() {});
+              },
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -310,7 +437,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SizedBox(height: 5),
 
                     Text(
-                      'Productos, precios, inventario y categorías',
+                      'Productos, precios, '
+                      'inventario y categorías',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserManagementCard() {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () async {
+          if (!Services.permissions.canManageUsers) {
+            return;
+          }
+
+          await Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const UserManagementScreen()),
+          );
+
+          if (!mounted) {
+            return;
+          }
+
+          setState(() {});
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: const Row(
+            children: [
+              Icon(
+                Icons.manage_accounts_outlined,
+                color: AppColors.goldLight,
+                size: 34,
+              ),
+
+              SizedBox(width: 14),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Administrar usuarios',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(height: 5),
+
+                    Text(
+                      'Crear usuarios, asignar roles, '
+                      'activar cuentas y restablecer PIN',
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 13,
@@ -410,7 +610,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: RadioGroup<PrinterPaperSize>(
         groupValue: _paperSize,
         onChanged: (value) {
-          if (value == null) {
+          if (value == null || !_canManagePrinter) {
             return;
           }
 
@@ -449,7 +649,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               subtitle: Text(
-                'Recomendado para facturas completas',
+                'Recomendado para '
+                'facturas completas',
                 style: TextStyle(color: AppColors.textSecondary),
               ),
             ),
@@ -460,7 +661,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _searchPrinters() async {
-    if (_searchingPrinters) {
+    if (_searchingPrinters || !_canManagePrinter) {
       return;
     }
 
@@ -480,7 +681,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SnackBar(
             content: Text(
               'Bluetooth está apagado. '
-              'Actívalo e inténtalo nuevamente.',
+              'Actívalo e inténtalo '
+              'nuevamente.',
             ),
           ),
         );
@@ -498,7 +700,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (devices.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No hay dispositivos Bluetooth emparejados.'),
+            content: Text(
+              'No hay dispositivos '
+              'Bluetooth emparejados.',
+            ),
           ),
         );
 
@@ -538,6 +743,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           )
                         : null,
                     onTap: () {
+                      if (!_canManagePrinter) {
+                        return;
+                      }
+
                       Services.printer.selectPrinter(
                         name: device.name.isEmpty
                             ? device.macAdress
@@ -564,7 +773,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         SnackBar(
           content: Text(
             'No se pudieron obtener los '
-            'dispositivos Bluetooth: $error',
+            'dispositivos Bluetooth: '
+            '$error',
           ),
         ),
       );
@@ -578,7 +788,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _printTest() async {
-    if (_printingTest || !_hasSelectedPrinter) {
+    if (_printingTest || !_hasSelectedPrinter || !_canManagePrinter) {
       return;
     }
 
@@ -599,7 +809,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (printed) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Prueba enviada correctamente a la impresora.'),
+          content: Text(
+            'Prueba enviada correctamente '
+            'a la impresora.',
+          ),
         ),
       );
 
@@ -610,14 +823,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       const SnackBar(
         content: Text(
           'No se pudo conectar o imprimir. '
-          'Verifica que la impresora esté encendida '
-          'y emparejada.',
+          'Verifica que la impresora esté '
+          'encendida y emparejada.',
         ),
       ),
     );
   }
 
   Future<void> _clearPrinter() async {
+    if (!_canManagePrinter) {
+      return;
+    }
+
     await Services.printer.disconnect();
 
     Services.printer.clearPrinter();
@@ -629,7 +846,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {});
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Impresora eliminada de la configuración.')),
+      const SnackBar(
+        content: Text(
+          'Impresora eliminada '
+          'de la configuración.',
+        ),
+      ),
+    );
+  }
+}
+
+class _AccessDeniedView extends StatelessWidget {
+  const _AccessDeniedView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.lock_outline, size: 56, color: AppColors.textSecondary),
+            SizedBox(height: 14),
+            Text(
+              'ACCESO RESTRINGIDO',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Este usuario no tiene permiso '
+              'para acceder a los ajustes.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

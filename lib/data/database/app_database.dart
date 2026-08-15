@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 import 'tables/account_items_table.dart';
+import 'tables/app_users_table.dart';
 import 'tables/business_settings_table.dart';
 import 'tables/cash_sessions_table.dart';
 import 'tables/open_accounts_table.dart';
@@ -24,6 +25,7 @@ part 'app_database.g.dart';
     CashSessions,
     BusinessSettings,
     OpenAccounts,
+    AppUsers,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -36,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(driftDatabase(name: 'privity_pos'));
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -71,12 +73,6 @@ class AppDatabase extends _$AppDatabase {
         if (from < 8) {
           await m.createTable(openAccounts);
 
-          // Migrar todas las cuentas existentes de Mesa
-          // hacia la nueva estructura general OpenAccounts.
-          //
-          // Conservamos exactamente el mismo ID para que
-          // AccountItems.accountId continúe relacionado
-          // con la cuenta correcta.
           await customStatement('''
             INSERT OR IGNORE INTO open_accounts (
               id,
@@ -95,6 +91,10 @@ class AppDatabase extends _$AppDatabase {
               is_closed
             FROM table_accounts
             ''');
+        }
+
+        if (from < 9) {
+          await m.createTable(appUsers);
         }
       },
     );
