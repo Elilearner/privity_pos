@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Vendra release signing
+/android/key.properties
+/android/app/vendra-release.jks

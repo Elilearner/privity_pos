@@ -17,13 +17,13 @@
         android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation" />
 
-    <!-- Indica que la app usa Bluetooth pero puede funcionar sin él -->
+    <!-- La app puede funcionar aunque el equipo no tenga Bluetooth -->
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="false" />
 
     <application
-        android:label="privity_pos"
+        android:label="Vendra"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
