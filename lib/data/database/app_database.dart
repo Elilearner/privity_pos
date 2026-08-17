@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(driftDatabase(name: 'privity_pos'));
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -95,6 +95,24 @@ class AppDatabase extends _$AppDatabase {
 
         if (from < 9) {
           await m.createTable(appUsers);
+        }
+
+        if (from < 10) {
+          await m.addColumn(
+            businessSettings,
+            businessSettings.tableSingularLabel,
+          );
+
+          await m.addColumn(
+            businessSettings,
+            businessSettings.tablePluralLabel,
+          );
+
+          await m.addColumn(businessSettings, businessSettings.barLabel);
+
+          await m.addColumn(businessSettings, businessSettings.quickSaleLabel);
+
+          await m.addColumn(businessSettings, businessSettings.takeawayLabel);
         }
       },
     );

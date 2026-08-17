@@ -20,6 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _searchingPrinters = false;
   bool _printingTest = false;
   bool _savingModule = false;
+  bool _savingLabels = false;
 
   bool get _canViewSettings {
     return Services.permissions.hasPermission(AppPermission.viewSettings);
@@ -73,9 +74,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
 
-        // El usuario con acceso a Ajustes puede ver
-        // los módulos. Si no tiene permiso para
-        // modificarlos, se solicitará autorización.
         const SizedBox(height: 20),
 
         const _SettingsSectionTitle(title: 'MÓDULOS DEL NEGOCIO'),
@@ -93,6 +91,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               : 'Los cambios en los módulos requieren '
                     'autorización administrativa.',
           style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+        ),
+
+        const SizedBox(height: 24),
+
+        const _SettingsSectionTitle(title: 'NOMBRES DE MÓDULOS'),
+
+        const SizedBox(height: 10),
+
+        _buildModuleLabelsCard(),
+
+        const SizedBox(height: 8),
+
+        const Text(
+          'Personaliza los nombres que aparecerán '
+          'en Vendra. Delivery permanece fijo.',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
         ),
 
         if (_canManageProducts) ...[
@@ -212,17 +226,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _ModuleSwitchTile(
             icon: Icons.table_restaurant_outlined,
-            title: 'Mesas',
-            subtitle: 'Ventas y cuentas abiertas por mesa',
+            title: settings.tablePluralLabel,
+            subtitle:
+                'Ventas y cuentas abiertas por '
+                '${settings.tableSingularLabel.toLowerCase()}',
             value: settings.enableTableSales,
             enabled: !_savingModule,
             onChanged: (value) {
               _updateModule(
                 actionDescription: value
                     ? 'Se requiere autorización para '
-                          'activar el módulo Mesas.'
+                          'activar el módulo '
+                          '${settings.tablePluralLabel}.'
                     : 'Se requiere autorización para '
-                          'desactivar el módulo Mesas.',
+                          'desactivar el módulo '
+                          '${settings.tablePluralLabel}.',
                 update: () => settings.setTableSalesEnabled(value),
               );
             },
@@ -232,17 +250,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           _ModuleSwitchTile(
             icon: Icons.local_bar_outlined,
-            title: 'Barra',
-            subtitle: 'Cuentas abiertas para clientes en barra',
+            title: settings.barLabel,
+            subtitle:
+                'Cuentas abiertas para clientes en '
+                '${settings.barLabel.toLowerCase()}',
             value: settings.enableBarSales,
             enabled: !_savingModule,
             onChanged: (value) {
               _updateModule(
                 actionDescription: value
                     ? 'Se requiere autorización para '
-                          'activar el módulo Barra.'
+                          'activar el módulo '
+                          '${settings.barLabel}.'
                     : 'Se requiere autorización para '
-                          'desactivar el módulo Barra.',
+                          'desactivar el módulo '
+                          '${settings.barLabel}.',
                 update: () => settings.setBarSalesEnabled(value),
               );
             },
@@ -252,7 +274,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           _ModuleSwitchTile(
             icon: Icons.point_of_sale_outlined,
-            title: 'Venta rápida',
+            title: settings.quickSaleLabel,
             subtitle: 'Ventas cobradas inmediatamente',
             value: settings.enableQuickSale,
             enabled: !_savingModule,
@@ -260,9 +282,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _updateModule(
                 actionDescription: value
                     ? 'Se requiere autorización para '
-                          'activar Venta rápida.'
+                          'activar ${settings.quickSaleLabel}.'
                     : 'Se requiere autorización para '
-                          'desactivar Venta rápida.',
+                          'desactivar ${settings.quickSaleLabel}.',
                 update: () => settings.setQuickSaleEnabled(value),
               );
             },
@@ -272,7 +294,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           _ModuleSwitchTile(
             icon: Icons.shopping_bag_outlined,
-            title: 'Para llevar',
+            title: settings.takeawayLabel,
             subtitle: 'Pedidos para recoger o llevar',
             value: settings.enableTakeaway,
             enabled: !_savingModule,
@@ -280,9 +302,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _updateModule(
                 actionDescription: value
                     ? 'Se requiere autorización para '
-                          'activar Para llevar.'
+                          'activar ${settings.takeawayLabel}.'
                     : 'Se requiere autorización para '
-                          'desactivar Para llevar.',
+                          'desactivar ${settings.takeawayLabel}.',
                 update: () => settings.setTakeawayEnabled(value),
               );
             },
@@ -320,8 +342,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
 
-    // Si el usuario actual no tiene el permiso,
-    // solicitamos autorización puntual.
     if (!_canManageModules) {
       final authorization = await showAuthorizationDialog(
         context: context,
@@ -379,6 +399,170 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         setState(() {
           _savingModule = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildModuleLabelsCard() {
+    final settings = Services.settings;
+
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: _savingLabels ? null : _showModuleLabelsDialog,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.edit_note_outlined,
+                color: AppColors.goldLight,
+                size: 34,
+              ),
+
+              const SizedBox(width: 14),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Personalizar nombres',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 5),
+
+                    Text(
+                      '${settings.tablePluralLabel} · '
+                      '${settings.barLabel} · '
+                      '${settings.quickSaleLabel} · '
+                      '${settings.takeawayLabel}',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showModuleLabelsDialog() async {
+    final settings = Services.settings;
+
+    final result = await showDialog<_ModuleLabelsResult>(
+      context: context,
+      builder: (dialogContext) {
+        return _ModuleLabelsDialog(
+          tableSingularLabel: settings.tableSingularLabel,
+          tablePluralLabel: settings.tablePluralLabel,
+          barLabel: settings.barLabel,
+          quickSaleLabel: settings.quickSaleLabel,
+          takeawayLabel: settings.takeawayLabel,
+        );
+      },
+    );
+
+    if (!mounted || result == null) {
+      return;
+    }
+
+    await _saveModuleLabels(
+      tableSingularLabel: result.tableSingularLabel,
+      tablePluralLabel: result.tablePluralLabel,
+      barLabel: result.barLabel,
+      quickSaleLabel: result.quickSaleLabel,
+      takeawayLabel: result.takeawayLabel,
+    );
+  }
+
+  Future<void> _saveModuleLabels({
+    required String tableSingularLabel,
+    required String tablePluralLabel,
+    required String barLabel,
+    required String quickSaleLabel,
+    required String takeawayLabel,
+  }) async {
+    if (_savingLabels) {
+      return;
+    }
+
+    if (!_canManageModules) {
+      final authorization = await showAuthorizationDialog(
+        context: context,
+        requiredPermission: AppPermission.manageBusinessModules,
+        actionDescription:
+            'Se requiere autorización para '
+            'cambiar los nombres de los módulos.',
+      );
+
+      if (!mounted || !authorization.authorized) {
+        return;
+      }
+    }
+
+    setState(() {
+      _savingLabels = true;
+    });
+
+    try {
+      await Services.settings.updateLabels(
+        tableSingularLabel: tableSingularLabel,
+        tablePluralLabel: tablePluralLabel,
+        barLabel: barLabel,
+        quickSaleLabel: quickSaleLabel,
+        takeawayLabel: takeawayLabel,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {});
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Nombres actualizados correctamente.')),
+        );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No se pudieron guardar '
+              'los nombres.',
+            ),
+          ),
+        );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _savingLabels = false;
         });
       }
     }
@@ -856,6 +1040,183 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
+class _ModuleLabelsResult {
+  const _ModuleLabelsResult({
+    required this.tableSingularLabel,
+    required this.tablePluralLabel,
+    required this.barLabel,
+    required this.quickSaleLabel,
+    required this.takeawayLabel,
+  });
+
+  final String tableSingularLabel;
+  final String tablePluralLabel;
+  final String barLabel;
+  final String quickSaleLabel;
+  final String takeawayLabel;
+}
+
+class _ModuleLabelsDialog extends StatefulWidget {
+  const _ModuleLabelsDialog({
+    required this.tableSingularLabel,
+    required this.tablePluralLabel,
+    required this.barLabel,
+    required this.quickSaleLabel,
+    required this.takeawayLabel,
+  });
+
+  final String tableSingularLabel;
+  final String tablePluralLabel;
+  final String barLabel;
+  final String quickSaleLabel;
+  final String takeawayLabel;
+
+  @override
+  State<_ModuleLabelsDialog> createState() => _ModuleLabelsDialogState();
+}
+
+class _ModuleLabelsDialogState extends State<_ModuleLabelsDialog> {
+  late final TextEditingController _tableSingularController;
+
+  late final TextEditingController _tablePluralController;
+
+  late final TextEditingController _barController;
+
+  late final TextEditingController _quickSaleController;
+
+  late final TextEditingController _takeawayController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _tableSingularController = TextEditingController(
+      text: widget.tableSingularLabel,
+    );
+
+    _tablePluralController = TextEditingController(
+      text: widget.tablePluralLabel,
+    );
+
+    _barController = TextEditingController(text: widget.barLabel);
+
+    _quickSaleController = TextEditingController(text: widget.quickSaleLabel);
+
+    _takeawayController = TextEditingController(text: widget.takeawayLabel);
+  }
+
+  @override
+  void dispose() {
+    _tableSingularController.dispose();
+    _tablePluralController.dispose();
+    _barController.dispose();
+    _quickSaleController.dispose();
+    _takeawayController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Nombres de módulos'),
+      content: SizedBox(
+        width: 420,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ModuleLabelField(
+                controller: _tableSingularController,
+                label: 'Nombre singular de Mesa',
+                hint: 'Mesa',
+              ),
+
+              const SizedBox(height: 12),
+
+              _ModuleLabelField(
+                controller: _tablePluralController,
+                label: 'Nombre plural de Mesas',
+                hint: 'Mesas',
+              ),
+
+              const SizedBox(height: 12),
+
+              _ModuleLabelField(
+                controller: _barController,
+                label: 'Barra',
+                hint: 'Barra',
+              ),
+
+              const SizedBox(height: 12),
+
+              _ModuleLabelField(
+                controller: _quickSaleController,
+                label: 'Venta rápida',
+                hint: 'Venta rápida',
+              ),
+
+              const SizedBox(height: 12),
+
+              _ModuleLabelField(
+                controller: _takeawayController,
+                label: 'Para llevar',
+                hint: 'Para llevar',
+              ),
+
+              const SizedBox(height: 14),
+
+              const Row(
+                children: [
+                  Icon(
+                    Icons.lock_outline,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
+
+                  SizedBox(width: 8),
+
+                  Expanded(
+                    child: Text(
+                      'Delivery permanece fijo.',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('CANCELAR'),
+        ),
+
+        FilledButton(onPressed: _save, child: const Text('GUARDAR')),
+      ],
+    );
+  }
+
+  void _save() {
+    Navigator.of(context).pop(
+      _ModuleLabelsResult(
+        tableSingularLabel: _tableSingularController.text,
+        tablePluralLabel: _tablePluralController.text,
+        barLabel: _barController.text,
+        quickSaleLabel: _quickSaleController.text,
+        takeawayLabel: _takeawayController.text,
+      ),
+    );
+  }
+}
+
 class _AccessDeniedView extends StatelessWidget {
   const _AccessDeniedView();
 
@@ -868,7 +1229,9 @@ class _AccessDeniedView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.lock_outline, size: 56, color: AppColors.textSecondary),
+
             SizedBox(height: 14),
+
             Text(
               'ACCESO RESTRINGIDO',
               style: TextStyle(
@@ -877,7 +1240,9 @@ class _AccessDeniedView extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             SizedBox(height: 8),
+
             Text(
               'Este usuario no tiene permiso '
               'para acceder a los ajustes.',
@@ -928,6 +1293,33 @@ class _ModuleSwitchTile extends StatelessWidget {
       subtitle: Text(
         subtitle,
         style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+      ),
+    );
+  }
+}
+
+class _ModuleLabelField extends StatelessWidget {
+  const _ModuleLabelField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      maxLength: 30,
+      textCapitalization: TextCapitalization.sentences,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        counterText: '',
+        border: const OutlineInputBorder(),
       ),
     );
   }

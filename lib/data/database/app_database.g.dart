@@ -3764,6 +3764,66 @@ class $BusinessSettingsTable extends BusinessSettings
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _tableSingularLabelMeta =
+      const VerificationMeta('tableSingularLabel');
+  @override
+  late final GeneratedColumn<String> tableSingularLabel =
+      GeneratedColumn<String>(
+        'table_singular_label',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('Mesa'),
+      );
+  static const VerificationMeta _tablePluralLabelMeta = const VerificationMeta(
+    'tablePluralLabel',
+  );
+  @override
+  late final GeneratedColumn<String> tablePluralLabel = GeneratedColumn<String>(
+    'table_plural_label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Mesas'),
+  );
+  static const VerificationMeta _barLabelMeta = const VerificationMeta(
+    'barLabel',
+  );
+  @override
+  late final GeneratedColumn<String> barLabel = GeneratedColumn<String>(
+    'bar_label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Barra'),
+  );
+  static const VerificationMeta _quickSaleLabelMeta = const VerificationMeta(
+    'quickSaleLabel',
+  );
+  @override
+  late final GeneratedColumn<String> quickSaleLabel = GeneratedColumn<String>(
+    'quick_sale_label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Venta rápida'),
+  );
+  static const VerificationMeta _takeawayLabelMeta = const VerificationMeta(
+    'takeawayLabel',
+  );
+  @override
+  late final GeneratedColumn<String> takeawayLabel = GeneratedColumn<String>(
+    'takeaway_label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Para llevar'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3772,6 +3832,11 @@ class $BusinessSettingsTable extends BusinessSettings
     enableQuickSale,
     enableTakeaway,
     enableDelivery,
+    tableSingularLabel,
+    tablePluralLabel,
+    barLabel,
+    quickSaleLabel,
+    takeawayLabel,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3833,6 +3898,48 @@ class $BusinessSettingsTable extends BusinessSettings
         ),
       );
     }
+    if (data.containsKey('table_singular_label')) {
+      context.handle(
+        _tableSingularLabelMeta,
+        tableSingularLabel.isAcceptableOrUnknown(
+          data['table_singular_label']!,
+          _tableSingularLabelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('table_plural_label')) {
+      context.handle(
+        _tablePluralLabelMeta,
+        tablePluralLabel.isAcceptableOrUnknown(
+          data['table_plural_label']!,
+          _tablePluralLabelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bar_label')) {
+      context.handle(
+        _barLabelMeta,
+        barLabel.isAcceptableOrUnknown(data['bar_label']!, _barLabelMeta),
+      );
+    }
+    if (data.containsKey('quick_sale_label')) {
+      context.handle(
+        _quickSaleLabelMeta,
+        quickSaleLabel.isAcceptableOrUnknown(
+          data['quick_sale_label']!,
+          _quickSaleLabelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('takeaway_label')) {
+      context.handle(
+        _takeawayLabelMeta,
+        takeawayLabel.isAcceptableOrUnknown(
+          data['takeaway_label']!,
+          _takeawayLabelMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -3866,6 +3973,26 @@ class $BusinessSettingsTable extends BusinessSettings
         DriftSqlType.bool,
         data['${effectivePrefix}enable_delivery'],
       )!,
+      tableSingularLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}table_singular_label'],
+      )!,
+      tablePluralLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}table_plural_label'],
+      )!,
+      barLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bar_label'],
+      )!,
+      quickSaleLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}quick_sale_label'],
+      )!,
+      takeawayLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}takeaway_label'],
+      )!,
     );
   }
 
@@ -3882,6 +4009,11 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
   final bool enableQuickSale;
   final bool enableTakeaway;
   final bool enableDelivery;
+  final String tableSingularLabel;
+  final String tablePluralLabel;
+  final String barLabel;
+  final String quickSaleLabel;
+  final String takeawayLabel;
   const BusinessSetting({
     required this.id,
     required this.enableTableSales,
@@ -3889,6 +4021,11 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
     required this.enableQuickSale,
     required this.enableTakeaway,
     required this.enableDelivery,
+    required this.tableSingularLabel,
+    required this.tablePluralLabel,
+    required this.barLabel,
+    required this.quickSaleLabel,
+    required this.takeawayLabel,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3899,6 +4036,11 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
     map['enable_quick_sale'] = Variable<bool>(enableQuickSale);
     map['enable_takeaway'] = Variable<bool>(enableTakeaway);
     map['enable_delivery'] = Variable<bool>(enableDelivery);
+    map['table_singular_label'] = Variable<String>(tableSingularLabel);
+    map['table_plural_label'] = Variable<String>(tablePluralLabel);
+    map['bar_label'] = Variable<String>(barLabel);
+    map['quick_sale_label'] = Variable<String>(quickSaleLabel);
+    map['takeaway_label'] = Variable<String>(takeawayLabel);
     return map;
   }
 
@@ -3910,6 +4052,11 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
       enableQuickSale: Value(enableQuickSale),
       enableTakeaway: Value(enableTakeaway),
       enableDelivery: Value(enableDelivery),
+      tableSingularLabel: Value(tableSingularLabel),
+      tablePluralLabel: Value(tablePluralLabel),
+      barLabel: Value(barLabel),
+      quickSaleLabel: Value(quickSaleLabel),
+      takeawayLabel: Value(takeawayLabel),
     );
   }
 
@@ -3925,6 +4072,13 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
       enableQuickSale: serializer.fromJson<bool>(json['enableQuickSale']),
       enableTakeaway: serializer.fromJson<bool>(json['enableTakeaway']),
       enableDelivery: serializer.fromJson<bool>(json['enableDelivery']),
+      tableSingularLabel: serializer.fromJson<String>(
+        json['tableSingularLabel'],
+      ),
+      tablePluralLabel: serializer.fromJson<String>(json['tablePluralLabel']),
+      barLabel: serializer.fromJson<String>(json['barLabel']),
+      quickSaleLabel: serializer.fromJson<String>(json['quickSaleLabel']),
+      takeawayLabel: serializer.fromJson<String>(json['takeawayLabel']),
     );
   }
   @override
@@ -3937,6 +4091,11 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
       'enableQuickSale': serializer.toJson<bool>(enableQuickSale),
       'enableTakeaway': serializer.toJson<bool>(enableTakeaway),
       'enableDelivery': serializer.toJson<bool>(enableDelivery),
+      'tableSingularLabel': serializer.toJson<String>(tableSingularLabel),
+      'tablePluralLabel': serializer.toJson<String>(tablePluralLabel),
+      'barLabel': serializer.toJson<String>(barLabel),
+      'quickSaleLabel': serializer.toJson<String>(quickSaleLabel),
+      'takeawayLabel': serializer.toJson<String>(takeawayLabel),
     };
   }
 
@@ -3947,6 +4106,11 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
     bool? enableQuickSale,
     bool? enableTakeaway,
     bool? enableDelivery,
+    String? tableSingularLabel,
+    String? tablePluralLabel,
+    String? barLabel,
+    String? quickSaleLabel,
+    String? takeawayLabel,
   }) => BusinessSetting(
     id: id ?? this.id,
     enableTableSales: enableTableSales ?? this.enableTableSales,
@@ -3954,6 +4118,11 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
     enableQuickSale: enableQuickSale ?? this.enableQuickSale,
     enableTakeaway: enableTakeaway ?? this.enableTakeaway,
     enableDelivery: enableDelivery ?? this.enableDelivery,
+    tableSingularLabel: tableSingularLabel ?? this.tableSingularLabel,
+    tablePluralLabel: tablePluralLabel ?? this.tablePluralLabel,
+    barLabel: barLabel ?? this.barLabel,
+    quickSaleLabel: quickSaleLabel ?? this.quickSaleLabel,
+    takeawayLabel: takeawayLabel ?? this.takeawayLabel,
   );
   BusinessSetting copyWithCompanion(BusinessSettingsCompanion data) {
     return BusinessSetting(
@@ -3973,6 +4142,19 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
       enableDelivery: data.enableDelivery.present
           ? data.enableDelivery.value
           : this.enableDelivery,
+      tableSingularLabel: data.tableSingularLabel.present
+          ? data.tableSingularLabel.value
+          : this.tableSingularLabel,
+      tablePluralLabel: data.tablePluralLabel.present
+          ? data.tablePluralLabel.value
+          : this.tablePluralLabel,
+      barLabel: data.barLabel.present ? data.barLabel.value : this.barLabel,
+      quickSaleLabel: data.quickSaleLabel.present
+          ? data.quickSaleLabel.value
+          : this.quickSaleLabel,
+      takeawayLabel: data.takeawayLabel.present
+          ? data.takeawayLabel.value
+          : this.takeawayLabel,
     );
   }
 
@@ -3984,7 +4166,12 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
           ..write('enableBarSales: $enableBarSales, ')
           ..write('enableQuickSale: $enableQuickSale, ')
           ..write('enableTakeaway: $enableTakeaway, ')
-          ..write('enableDelivery: $enableDelivery')
+          ..write('enableDelivery: $enableDelivery, ')
+          ..write('tableSingularLabel: $tableSingularLabel, ')
+          ..write('tablePluralLabel: $tablePluralLabel, ')
+          ..write('barLabel: $barLabel, ')
+          ..write('quickSaleLabel: $quickSaleLabel, ')
+          ..write('takeawayLabel: $takeawayLabel')
           ..write(')'))
         .toString();
   }
@@ -3997,6 +4184,11 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
     enableQuickSale,
     enableTakeaway,
     enableDelivery,
+    tableSingularLabel,
+    tablePluralLabel,
+    barLabel,
+    quickSaleLabel,
+    takeawayLabel,
   );
   @override
   bool operator ==(Object other) =>
@@ -4007,7 +4199,12 @@ class BusinessSetting extends DataClass implements Insertable<BusinessSetting> {
           other.enableBarSales == this.enableBarSales &&
           other.enableQuickSale == this.enableQuickSale &&
           other.enableTakeaway == this.enableTakeaway &&
-          other.enableDelivery == this.enableDelivery);
+          other.enableDelivery == this.enableDelivery &&
+          other.tableSingularLabel == this.tableSingularLabel &&
+          other.tablePluralLabel == this.tablePluralLabel &&
+          other.barLabel == this.barLabel &&
+          other.quickSaleLabel == this.quickSaleLabel &&
+          other.takeawayLabel == this.takeawayLabel);
 }
 
 class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
@@ -4017,6 +4214,11 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
   final Value<bool> enableQuickSale;
   final Value<bool> enableTakeaway;
   final Value<bool> enableDelivery;
+  final Value<String> tableSingularLabel;
+  final Value<String> tablePluralLabel;
+  final Value<String> barLabel;
+  final Value<String> quickSaleLabel;
+  final Value<String> takeawayLabel;
   const BusinessSettingsCompanion({
     this.id = const Value.absent(),
     this.enableTableSales = const Value.absent(),
@@ -4024,6 +4226,11 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
     this.enableQuickSale = const Value.absent(),
     this.enableTakeaway = const Value.absent(),
     this.enableDelivery = const Value.absent(),
+    this.tableSingularLabel = const Value.absent(),
+    this.tablePluralLabel = const Value.absent(),
+    this.barLabel = const Value.absent(),
+    this.quickSaleLabel = const Value.absent(),
+    this.takeawayLabel = const Value.absent(),
   });
   BusinessSettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -4032,6 +4239,11 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
     this.enableQuickSale = const Value.absent(),
     this.enableTakeaway = const Value.absent(),
     this.enableDelivery = const Value.absent(),
+    this.tableSingularLabel = const Value.absent(),
+    this.tablePluralLabel = const Value.absent(),
+    this.barLabel = const Value.absent(),
+    this.quickSaleLabel = const Value.absent(),
+    this.takeawayLabel = const Value.absent(),
   });
   static Insertable<BusinessSetting> custom({
     Expression<int>? id,
@@ -4040,6 +4252,11 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
     Expression<bool>? enableQuickSale,
     Expression<bool>? enableTakeaway,
     Expression<bool>? enableDelivery,
+    Expression<String>? tableSingularLabel,
+    Expression<String>? tablePluralLabel,
+    Expression<String>? barLabel,
+    Expression<String>? quickSaleLabel,
+    Expression<String>? takeawayLabel,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4048,6 +4265,12 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
       if (enableQuickSale != null) 'enable_quick_sale': enableQuickSale,
       if (enableTakeaway != null) 'enable_takeaway': enableTakeaway,
       if (enableDelivery != null) 'enable_delivery': enableDelivery,
+      if (tableSingularLabel != null)
+        'table_singular_label': tableSingularLabel,
+      if (tablePluralLabel != null) 'table_plural_label': tablePluralLabel,
+      if (barLabel != null) 'bar_label': barLabel,
+      if (quickSaleLabel != null) 'quick_sale_label': quickSaleLabel,
+      if (takeawayLabel != null) 'takeaway_label': takeawayLabel,
     });
   }
 
@@ -4058,6 +4281,11 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
     Value<bool>? enableQuickSale,
     Value<bool>? enableTakeaway,
     Value<bool>? enableDelivery,
+    Value<String>? tableSingularLabel,
+    Value<String>? tablePluralLabel,
+    Value<String>? barLabel,
+    Value<String>? quickSaleLabel,
+    Value<String>? takeawayLabel,
   }) {
     return BusinessSettingsCompanion(
       id: id ?? this.id,
@@ -4066,6 +4294,11 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
       enableQuickSale: enableQuickSale ?? this.enableQuickSale,
       enableTakeaway: enableTakeaway ?? this.enableTakeaway,
       enableDelivery: enableDelivery ?? this.enableDelivery,
+      tableSingularLabel: tableSingularLabel ?? this.tableSingularLabel,
+      tablePluralLabel: tablePluralLabel ?? this.tablePluralLabel,
+      barLabel: barLabel ?? this.barLabel,
+      quickSaleLabel: quickSaleLabel ?? this.quickSaleLabel,
+      takeawayLabel: takeawayLabel ?? this.takeawayLabel,
     );
   }
 
@@ -4090,6 +4323,21 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
     if (enableDelivery.present) {
       map['enable_delivery'] = Variable<bool>(enableDelivery.value);
     }
+    if (tableSingularLabel.present) {
+      map['table_singular_label'] = Variable<String>(tableSingularLabel.value);
+    }
+    if (tablePluralLabel.present) {
+      map['table_plural_label'] = Variable<String>(tablePluralLabel.value);
+    }
+    if (barLabel.present) {
+      map['bar_label'] = Variable<String>(barLabel.value);
+    }
+    if (quickSaleLabel.present) {
+      map['quick_sale_label'] = Variable<String>(quickSaleLabel.value);
+    }
+    if (takeawayLabel.present) {
+      map['takeaway_label'] = Variable<String>(takeawayLabel.value);
+    }
     return map;
   }
 
@@ -4101,7 +4349,12 @@ class BusinessSettingsCompanion extends UpdateCompanion<BusinessSetting> {
           ..write('enableBarSales: $enableBarSales, ')
           ..write('enableQuickSale: $enableQuickSale, ')
           ..write('enableTakeaway: $enableTakeaway, ')
-          ..write('enableDelivery: $enableDelivery')
+          ..write('enableDelivery: $enableDelivery, ')
+          ..write('tableSingularLabel: $tableSingularLabel, ')
+          ..write('tablePluralLabel: $tablePluralLabel, ')
+          ..write('barLabel: $barLabel, ')
+          ..write('quickSaleLabel: $quickSaleLabel, ')
+          ..write('takeawayLabel: $takeawayLabel')
           ..write(')'))
         .toString();
   }
@@ -7195,6 +7448,11 @@ typedef $$BusinessSettingsTableCreateCompanionBuilder =
       Value<bool> enableQuickSale,
       Value<bool> enableTakeaway,
       Value<bool> enableDelivery,
+      Value<String> tableSingularLabel,
+      Value<String> tablePluralLabel,
+      Value<String> barLabel,
+      Value<String> quickSaleLabel,
+      Value<String> takeawayLabel,
     });
 typedef $$BusinessSettingsTableUpdateCompanionBuilder =
     BusinessSettingsCompanion Function({
@@ -7204,6 +7462,11 @@ typedef $$BusinessSettingsTableUpdateCompanionBuilder =
       Value<bool> enableQuickSale,
       Value<bool> enableTakeaway,
       Value<bool> enableDelivery,
+      Value<String> tableSingularLabel,
+      Value<String> tablePluralLabel,
+      Value<String> barLabel,
+      Value<String> quickSaleLabel,
+      Value<String> takeawayLabel,
     });
 
 class $$BusinessSettingsTableFilterComposer
@@ -7242,6 +7505,31 @@ class $$BusinessSettingsTableFilterComposer
 
   ColumnFilters<bool> get enableDelivery => $composableBuilder(
     column: $table.enableDelivery,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tableSingularLabel => $composableBuilder(
+    column: $table.tableSingularLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tablePluralLabel => $composableBuilder(
+    column: $table.tablePluralLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get barLabel => $composableBuilder(
+    column: $table.barLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get quickSaleLabel => $composableBuilder(
+    column: $table.quickSaleLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get takeawayLabel => $composableBuilder(
+    column: $table.takeawayLabel,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -7284,6 +7572,31 @@ class $$BusinessSettingsTableOrderingComposer
     column: $table.enableDelivery,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get tableSingularLabel => $composableBuilder(
+    column: $table.tableSingularLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tablePluralLabel => $composableBuilder(
+    column: $table.tablePluralLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get barLabel => $composableBuilder(
+    column: $table.barLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get quickSaleLabel => $composableBuilder(
+    column: $table.quickSaleLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get takeawayLabel => $composableBuilder(
+    column: $table.takeawayLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$BusinessSettingsTableAnnotationComposer
@@ -7320,6 +7633,29 @@ class $$BusinessSettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get enableDelivery => $composableBuilder(
     column: $table.enableDelivery,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get tableSingularLabel => $composableBuilder(
+    column: $table.tableSingularLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get tablePluralLabel => $composableBuilder(
+    column: $table.tablePluralLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get barLabel =>
+      $composableBuilder(column: $table.barLabel, builder: (column) => column);
+
+  GeneratedColumn<String> get quickSaleLabel => $composableBuilder(
+    column: $table.quickSaleLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get takeawayLabel => $composableBuilder(
+    column: $table.takeawayLabel,
     builder: (column) => column,
   );
 }
@@ -7367,6 +7703,11 @@ class $$BusinessSettingsTableTableManager
                 Value<bool> enableQuickSale = const Value.absent(),
                 Value<bool> enableTakeaway = const Value.absent(),
                 Value<bool> enableDelivery = const Value.absent(),
+                Value<String> tableSingularLabel = const Value.absent(),
+                Value<String> tablePluralLabel = const Value.absent(),
+                Value<String> barLabel = const Value.absent(),
+                Value<String> quickSaleLabel = const Value.absent(),
+                Value<String> takeawayLabel = const Value.absent(),
               }) => BusinessSettingsCompanion(
                 id: id,
                 enableTableSales: enableTableSales,
@@ -7374,6 +7715,11 @@ class $$BusinessSettingsTableTableManager
                 enableQuickSale: enableQuickSale,
                 enableTakeaway: enableTakeaway,
                 enableDelivery: enableDelivery,
+                tableSingularLabel: tableSingularLabel,
+                tablePluralLabel: tablePluralLabel,
+                barLabel: barLabel,
+                quickSaleLabel: quickSaleLabel,
+                takeawayLabel: takeawayLabel,
               ),
           createCompanionCallback:
               ({
@@ -7383,6 +7729,11 @@ class $$BusinessSettingsTableTableManager
                 Value<bool> enableQuickSale = const Value.absent(),
                 Value<bool> enableTakeaway = const Value.absent(),
                 Value<bool> enableDelivery = const Value.absent(),
+                Value<String> tableSingularLabel = const Value.absent(),
+                Value<String> tablePluralLabel = const Value.absent(),
+                Value<String> barLabel = const Value.absent(),
+                Value<String> quickSaleLabel = const Value.absent(),
+                Value<String> takeawayLabel = const Value.absent(),
               }) => BusinessSettingsCompanion.insert(
                 id: id,
                 enableTableSales: enableTableSales,
@@ -7390,6 +7741,11 @@ class $$BusinessSettingsTableTableManager
                 enableQuickSale: enableQuickSale,
                 enableTakeaway: enableTakeaway,
                 enableDelivery: enableDelivery,
+                tableSingularLabel: tableSingularLabel,
+                tablePluralLabel: tablePluralLabel,
+                barLabel: barLabel,
+                quickSaleLabel: quickSaleLabel,
+                takeawayLabel: takeawayLabel,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
